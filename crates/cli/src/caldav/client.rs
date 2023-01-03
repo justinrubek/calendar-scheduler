@@ -1,7 +1,7 @@
 use minidom::Element;
 use reqwest::{
     header::CONTENT_TYPE,
-    Client, Method, Result
+    Method, Result
 };
 use url::Url;
 
@@ -47,15 +47,26 @@ impl DavClient {
         }
     }
 
-    pub async fn get_principal(&self, client: &Client) -> Result<Principal> {
+    pub fn create_request(&self, client: &reqwest::Client, method: Method, path: Option<&str>) -> Result<reqwest::RequestBuilder> {
+        let mut url = self.url.clone();
+        if let Some(path) = path {
+            url.set_path(path);
+        }
+
+        let req = client
+            .request(method, url.as_str())
+            .header("Depth", "0")
+            .header(CONTENT_TYPE, "application/xml")
+            .basic_auth(&self.credentials.username, Some(&self.credentials.password));
+
+        Ok(req)
+    }
+
+    pub async fn get_principal(&self, client: &reqwest::Client) -> Result<Principal> {
         let method = Method::from_bytes(b"PROPFIND")
             .expect("failed to create PROPFIND method");
 
-        let res = client
-            .request(method, self.url.as_str())
-            .header("Depth", "0")
-            .header(CONTENT_TYPE, "application/xml")
-            .basic_auth(&self.credentials.username, Some(&self.credentials.password))
+        let res = self.create_request(client, method, None)?
             .body(DAVCLIENT_BODY)
             .send()
             .await?;
@@ -75,4 +86,5 @@ impl DavClient {
 
         Ok(Principal::new(url, self.credentials.clone()))
     }
+
 }
