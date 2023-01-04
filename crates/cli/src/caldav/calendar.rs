@@ -3,9 +3,9 @@ use reqwest::Method;
 use tracing::info;
 use url::Url;
 
-use super::util::find_elements;
-
+use super::format;
 use super::client::DavClient;
+use super::util::find_elements;
 
 #[derive(Clone, Debug)]
 pub struct Calendar {
@@ -31,9 +31,16 @@ impl Calendar {
         }
     }
 
-    pub async fn get_events(&self, client: &reqwest::Client, start: &str, end: &str) -> Result<Vec<String>, Box<dyn std::error::Error>> {
-        // Format the request body
-        //
+    pub async fn get_events(
+        &self,
+        client: &reqwest::Client,
+        start: chrono::DateTime<chrono::Utc>,
+        end: chrono::DateTime<chrono::Utc>,
+    ) -> Result<Vec<String>, Box<dyn std::error::Error>> {
+        // Format timestaps for caldav e.g. "20230108T000000Z";
+        let start_str = start.format(format::DATETIME);
+        let end_str = end.format(format::DATETIME);
+
         let body = format!(r#"
             <c:calendar-query xmlns:d="DAV:" xmlns:c="urn:ietf:params:xml:ns:caldav">
               <d:prop>
@@ -43,7 +50,7 @@ impl Calendar {
               <c:filter>
                 <c:comp-filter name="VCALENDAR">
                   <c:comp-filter name="VEVENT" >
-                    <c:time-range start="{start}" end="{end}" />
+                    <c:time-range start="{start_str}" end="{end_str}" />
                   </c:comp-filter>
                 </c:comp-filter>
               </c:filter>

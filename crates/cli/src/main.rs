@@ -18,8 +18,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let calendars = principal.get_calendars(&client).await?;
 
-    let start = "20230103T000000Z";
-    let end = "20230108T000000Z";
+    let start = chrono::Utc::now();
+    let end = start + chrono::Duration::days(7);
+    tracing::info!("checking time range {} - {}", start, end);
 
     for calendar in calendars {
         tracing::debug!("Calendar: {}", calendar.display_name);
