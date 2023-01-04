@@ -2,6 +2,10 @@
 name = "caldav-utils"
 version = "0.2.1"
 edition = "2021"
+license = "MIT"
+description = "functions for interacting with CalDAV servers"
+homepage = "https://github.com/justinrubek/calendar-scheduler"
+repository = "https://github.com/justinrubek/calendar-scheduler"
 
 [dependencies]
 chrono = "0.4.23"
