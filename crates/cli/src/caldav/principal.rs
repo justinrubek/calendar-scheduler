@@ -5,7 +5,7 @@ use reqwest::{
 };
 use url::Url;
 
-use super::client::DavCredentials;
+use super::client::{DavCredentials, DavClient};
 use super::util::{find_element, find_elements};
 use super::calendar::Calendar;
 
@@ -36,14 +36,17 @@ pub struct Principal {
     url: Url,
     homeset_url: Option<Url>,
     calendars: Vec<Calendar>,
-    credentials: DavCredentials,
+    client: DavClient
 }
 
 impl Principal {
-    pub fn new(url: Url, credentials: DavCredentials) -> Principal {
+    pub fn new(
+        client: DavClient,
+        url: Url,
+    ) -> Principal {
         Principal {
+            client,
             url,
-            credentials,
             homeset_url: None,
             calendars: Vec::new(),
         }
@@ -57,7 +60,7 @@ impl Principal {
             .request(method, self.url.as_str())
             .header("Depth", "0")
             .header(CONTENT_TYPE, "application/xml")
-            .basic_auth(&self.credentials.username, Some(&self.credentials.password))
+            .basic_auth(&self.client.credentials.username, Some(&self.client.credentials.password))
             .body(HOMESET_BODY)
             .send()
             .await?;
@@ -88,15 +91,16 @@ impl Principal {
             .expect("failed to create PROPFIND method");
 
         let res = client
-            .request(method, homeset_url)
+            .request(method, homeset_url.clone())
             .header("Depth", "1")
             .header(CONTENT_TYPE, "application/xml")
-            .basic_auth(&self.credentials.username, Some(&self.credentials.password))
+            .basic_auth(&self.client.credentials.username, Some(&self.client.credentials.password))
             .body(CALENDAR_BODY)
             .send()
             .await?;
 
         let text = res.text().await?;
+        println!("{}", text);
 
         let root: Element = text.parse().expect("failed to parse xml");
         let responses = find_elements(&root, "response".to_string());
@@ -111,8 +115,10 @@ impl Principal {
             let href = find_element(response, "href".to_string())
                 .expect("failed to find href")
                 .text();
+            let mut url = homeset_url.clone();
+            url.set_path(&href);
 
-            Some(Calendar::new(displayname, href))
+            Some(Calendar::new(url, displayname, href))
         }).collect();
         
         self.calendars = calendars.clone();

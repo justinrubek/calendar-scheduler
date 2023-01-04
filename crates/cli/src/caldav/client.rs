@@ -34,7 +34,7 @@ impl DavCredentials {
 #[derive(Debug)]
 pub struct DavClient {
     url: Url,
-    credentials: DavCredentials,
+    pub (super) credentials: DavCredentials,
 }
 
 impl DavClient {
@@ -62,7 +62,7 @@ impl DavClient {
         Ok(req)
     }
 
-    pub async fn get_principal(&self, client: &reqwest::Client) -> Result<Principal> {
+    pub async fn get_principal(self, client: &reqwest::Client) -> Result<Principal> {
         let method = Method::from_bytes(b"PROPFIND")
             .expect("failed to create PROPFIND method");
 
@@ -84,7 +84,7 @@ impl DavClient {
         let mut url = self.url.clone();
         url.set_path(&href);
 
-        Ok(Principal::new(url, self.credentials.clone()))
+        Ok(Principal::new(self, url))
     }
 
 }
