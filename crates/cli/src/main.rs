@@ -35,7 +35,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .get_events(&client, start, end)
         .await?;
     info!("found {} events", events.len());
-    info!("first event: {}", events[0]);
+    info!("first event: {:?}", events[0]);
 
     Ok(())
 }

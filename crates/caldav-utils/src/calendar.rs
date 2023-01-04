@@ -15,6 +15,11 @@ pub struct Calendar {
     pub display_name: String,
 }
 
+#[derive(Debug)]
+pub struct Event {
+    ical: icalendar::Calendar,
+}
+
 impl Calendar {
     pub fn new(client: DavClient, url: Url, path: String, display_name: String) -> Calendar {
         Calendar {
@@ -30,7 +35,7 @@ impl Calendar {
         client: &reqwest::Client,
         start: chrono::DateTime<chrono::Utc>,
         end: chrono::DateTime<chrono::Utc>,
-    ) -> Result<Vec<String>, Box<dyn std::error::Error>> {
+    ) -> Result<Vec<Event>, Box<dyn std::error::Error>> {
         // Format timestaps for caldav e.g. "20230108T000000Z";
         let start_str = start.format(format::DATETIME);
         let end_str = end.format(format::DATETIME);
@@ -79,7 +84,15 @@ impl Calendar {
 
         let root: Element = text.parse()?;
         let data = find_elements(&root, "calendar-data".to_string());
-        let events = data.iter().map(|d| d.text()).collect();
+        let events: Vec<_> = data.iter()
+            .map(|d| d.text())
+            .map(|t| {
+                let ical = icalendar::parser::read_calendar(&t).expect("failed to parse ical");
+                Event { 
+                    ical: ical.to_owned().into(),
+                }
+            })
+            .collect();
 
         Ok(events)
     }
