@@ -1,0 +1,37 @@
+name: tag
+on:
+  push:
+    tags:
+      - "*"
+jobs:
+  publish-github:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Determine version
+        id: get_version
+        uses: battila7/get-version-action@v2
+
+      - name: create release
+        uses: actions/create-release@v1
+        id: create_release
+        with:
+          draft: false
+          prerelease: false
+          release_name: ${{ steps.get_version.outputs.version }}
+          tag_name: ${{ github.ref }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+  publish-crate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+      - uses: actions-rs/cargo@v1
+        with:
+          command: publish
+          args: --package caldav-utils --token ${{ secrets.CRATES_IO_TOKEN }}
