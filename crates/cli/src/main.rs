@@ -1,4 +1,5 @@
 use reqwest::Client;
+use tracing::info;
 
 use caldav_utils::client::{DavClient, DavCredentials};
 
@@ -18,15 +19,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let calendars = principal.get_calendars(&client).await?;
 
+    let availability_calendar = calendars.iter().find(|c| c.display_name == "meeting_availability").expect("no availability calendar found");
+    info!("found availability calendar: {}", availability_calendar.display_name);
+
     let start = chrono::Utc::now();
     let end = start + chrono::Duration::days(7);
-    tracing::info!("checking time range {} - {}", start, end);
 
-    for calendar in calendars {
-        tracing::debug!("Calendar: {}", calendar.display_name);
-        let events = calendar.get_events(&client, start, end).await?;
-        tracing::info!("events: {:?}", events);
-    }
+    let events = availability_calendar.get_events(&client, start, end).await?;
+    info!("found {} events", events.len());
+    info!("first event: {}", events[0]);
 
     Ok(())
 }

@@ -1,6 +1,5 @@
 use minidom::Element;
 use reqwest::Method;
-use tracing::info;
 use url::Url;
 
 use super::format;
@@ -61,7 +60,7 @@ impl Calendar {
         url.set_path(&self.path);
         let method = Method::from_bytes(b"REPORT")?;
 
-        info!("fetching events from {}", url);
+        tracing::debug!("fetching events from {}", url);
 
         let req = client
             .request(method, url.as_str())

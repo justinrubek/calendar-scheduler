@@ -3,7 +3,6 @@ use reqwest::{
     header::CONTENT_TYPE,
     Client, Method, Result
 };
-use tracing::info;
 use url::Url;
 
 use super::client::DavClient;
@@ -87,7 +86,7 @@ impl Principal {
             Some(url) => url.clone(),
             None => self.get_home_set(client).await?,
         };
-        info!("getting calendars from {}", homeset_url);
+        tracing::debug!("getting calendars from {}", homeset_url);
 
         let method = Method::from_bytes(b"PROPFIND")
             .expect("failed to create PROPFIND method");
@@ -103,7 +102,7 @@ impl Principal {
 
         let text = res.text().await?;
 
-        info!("response: {}", text);
+        tracing::debug!("response: {}", text);
 
         let root: Element = text.parse().expect("failed to parse xml");
         let responses = find_elements(&root, "response".to_string());
