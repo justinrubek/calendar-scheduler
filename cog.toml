@@ -9,6 +9,12 @@ post_bump_hooks = []
 
 [changelog]
 path = "CHANGELOG.md"
-authors = []
+template = "remote"
+remote = "github.com"
+repository = "calendar-scheduler"
+owner = "justinrubek"
+authors = [
+    { signature = "Justin Rubek", username = "justinrubek" }
+]
 
 [bump_profiles]
