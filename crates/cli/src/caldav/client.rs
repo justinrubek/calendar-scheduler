@@ -31,7 +31,7 @@ impl DavCredentials {
     }
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct DavClient {
     url: Url,
     pub (super) credentials: DavCredentials,
@@ -47,26 +47,21 @@ impl DavClient {
         }
     }
 
-    pub fn create_request(&self, client: &reqwest::Client, method: Method, path: Option<&str>) -> Result<reqwest::RequestBuilder> {
-        let mut url = self.url.clone();
-        if let Some(path) = path {
-            url.set_path(path);
-        }
-
+    pub fn create_request(&self, client: &reqwest::Client, method: Method, url: &Url, depth: u32) -> Result<reqwest::RequestBuilder> {
         let req = client
             .request(method, url.as_str())
-            .header("Depth", "0")
+            .header("Depth", format!("{depth}"))
             .header(CONTENT_TYPE, "application/xml")
             .basic_auth(&self.credentials.username, Some(&self.credentials.password));
 
         Ok(req)
     }
 
-    pub async fn get_principal(self, client: &reqwest::Client) -> Result<Principal> {
+    pub async fn get_principal(&self, client: &reqwest::Client) -> Result<Principal> {
         let method = Method::from_bytes(b"PROPFIND")
             .expect("failed to create PROPFIND method");
 
-        let res = self.create_request(client, method, None)?
+        let res = self.create_request(client, method, &self.url, 0)?
             .body(DAVCLIENT_BODY)
             .send()
             .await?;
@@ -84,7 +79,7 @@ impl DavClient {
         let mut url = self.url.clone();
         url.set_path(&href);
 
-        Ok(Principal::new(self, url))
+        Ok(Principal::new(self.clone(), url))
     }
 
 }

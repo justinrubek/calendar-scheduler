@@ -3,9 +3,10 @@ use reqwest::{
     header::CONTENT_TYPE,
     Client, Method, Result
 };
+use tracing::info;
 use url::Url;
 
-use super::client::{DavCredentials, DavClient};
+use super::client::DavClient;
 use super::util::{find_element, find_elements};
 use super::calendar::Calendar;
 
@@ -86,6 +87,7 @@ impl Principal {
             Some(url) => url.clone(),
             None => self.get_home_set(client).await?,
         };
+        info!("getting calendars from {}", homeset_url);
 
         let method = Method::from_bytes(b"PROPFIND")
             .expect("failed to create PROPFIND method");
@@ -100,7 +102,8 @@ impl Principal {
             .await?;
 
         let text = res.text().await?;
-        println!("{}", text);
+
+        info!("response: {}", text);
 
         let root: Element = text.parse().expect("failed to parse xml");
         let responses = find_elements(&root, "response".to_string());
@@ -115,10 +118,13 @@ impl Principal {
             let href = find_element(response, "href".to_string())
                 .expect("failed to find href")
                 .text();
-            let mut url = homeset_url.clone();
-            url.set_path(&href);
 
-            Some(Calendar::new(url, displayname, href))
+            Some(Calendar::new(
+                self.client.clone(),
+                self.url.clone(),
+                href,
+                displayname,
+            ))
         }).collect();
         
         self.calendars = calendars.clone();
