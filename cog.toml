@@ -3,7 +3,10 @@ branch_whitelist = []
 pre_bump_hooks = [
     "bomper {{latest}} {{version}}"
 ]
-post_bump_hooks = []
+post_bump_hooks = [
+    "git push",
+    "git push origin {{version}}"
+]
 
 [commit_types]
 
