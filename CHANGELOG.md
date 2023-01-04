@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## 0.2.2 - 2023-01-04
+#### Miscellaneous Chores
+- added Cargo metadata - (ad210ea) - Justin Rubek
+#### Style
+- cargo fmt - (9507617) - Justin Rubek
+
+- - -
+
 ## 0.2.1 - 2023-01-04
 #### Bug Fixes
 - rename github actions workflow - (7d88164) - Justin Rubek
