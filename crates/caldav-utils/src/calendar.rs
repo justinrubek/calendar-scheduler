@@ -2,8 +2,8 @@ use minidom::Element;
 use reqwest::Method;
 use url::Url;
 
-use super::format;
 use super::client::DavClient;
+use super::format;
 use super::util::find_elements;
 
 #[derive(Clone, Debug)]
@@ -16,12 +16,7 @@ pub struct Calendar {
 }
 
 impl Calendar {
-    pub fn new(
-        client: DavClient,
-        url: Url,
-        path: String,
-        display_name: String,
-    ) -> Calendar {
+    pub fn new(client: DavClient, url: Url, path: String, display_name: String) -> Calendar {
         Calendar {
             client,
             url,
@@ -40,7 +35,8 @@ impl Calendar {
         let start_str = start.format(format::DATETIME);
         let end_str = end.format(format::DATETIME);
 
-        let body = format!(r#"
+        let body = format!(
+            r#"
             <c:calendar-query xmlns:d="DAV:" xmlns:c="urn:ietf:params:xml:ns:caldav">
               <d:prop>
                 <d:getetag />
@@ -54,7 +50,8 @@ impl Calendar {
                 </c:comp-filter>
               </c:filter>
             </c:calendar-query>
-        "#);
+        "#
+        );
 
         let mut url = self.url.clone();
         url.set_path(&self.path);
@@ -66,7 +63,10 @@ impl Calendar {
             .request(method, url.as_str())
             .header("Depth", 1)
             .header("Content-Type", "application/xml")
-            .basic_auth(self.client.credentials.username.clone(), Some(self.client.credentials.password.clone()))
+            .basic_auth(
+                self.client.credentials.username.clone(),
+                Some(self.client.credentials.password.clone()),
+            )
             .body(body);
 
         tracing::debug!("request: {:?}", req);

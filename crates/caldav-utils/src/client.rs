@@ -1,8 +1,5 @@
 use minidom::Element;
-use reqwest::{
-    header::CONTENT_TYPE,
-    Method, Result
-};
+use reqwest::{header::CONTENT_TYPE, Method, Result};
 use url::Url;
 
 use super::principal::Principal;
@@ -18,36 +15,36 @@ static DAVCLIENT_BODY: &str = r#"
 
 #[derive(Clone, Debug)]
 pub struct DavCredentials {
-    pub (super) username: String,
-    pub (super) password: String,
+    pub(super) username: String,
+    pub(super) password: String,
 }
 
 impl DavCredentials {
     pub fn new(username: String, password: String) -> DavCredentials {
-        DavCredentials {
-            username,
-            password,
-        }
+        DavCredentials { username, password }
     }
 }
 
 #[derive(Clone, Debug)]
 pub struct DavClient {
     url: Url,
-    pub (super) credentials: DavCredentials,
+    pub(super) credentials: DavCredentials,
 }
 
 impl DavClient {
     pub fn new(url: String, credentials: DavCredentials) -> Self {
         let url = Url::parse(&url).expect("failed to parse url");
 
-        DavClient { 
-            url,
-            credentials,
-        }
+        DavClient { url, credentials }
     }
 
-    pub fn create_request(&self, client: &reqwest::Client, method: Method, url: &Url, depth: u32) -> Result<reqwest::RequestBuilder> {
+    pub fn create_request(
+        &self,
+        client: &reqwest::Client,
+        method: Method,
+        url: &Url,
+        depth: u32,
+    ) -> Result<reqwest::RequestBuilder> {
         let req = client
             .request(method, url.as_str())
             .header("Depth", format!("{depth}"))
@@ -58,10 +55,10 @@ impl DavClient {
     }
 
     pub async fn get_principal(&self, client: &reqwest::Client) -> Result<Principal> {
-        let method = Method::from_bytes(b"PROPFIND")
-            .expect("failed to create PROPFIND method");
+        let method = Method::from_bytes(b"PROPFIND").expect("failed to create PROPFIND method");
 
-        let res = self.create_request(client, method, &self.url, 0)?
+        let res = self
+            .create_request(client, method, &self.url, 0)?
             .body(DAVCLIENT_BODY)
             .send()
             .await?;
@@ -71,8 +68,8 @@ impl DavClient {
         let root: Element = text.parse().expect("failed to parse xml");
         let principal = find_element(&root, "current-user-principal".to_string())
             .expect("failed to find current-user-principal");
-        let principal_href = find_element(principal, "href".to_string())
-            .expect("failed to find principal's href");
+        let principal_href =
+            find_element(principal, "href".to_string()).expect("failed to find principal's href");
 
         let href = principal_href.text();
 
@@ -81,5 +78,4 @@ impl DavClient {
 
         Ok(Principal::new(self.clone(), url))
     }
-
 }

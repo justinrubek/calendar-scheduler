@@ -19,13 +19,21 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let calendars = principal.get_calendars(&client).await?;
 
-    let availability_calendar = calendars.iter().find(|c| c.display_name == "meeting_availability").expect("no availability calendar found");
-    info!("found availability calendar: {}", availability_calendar.display_name);
+    let availability_calendar = calendars
+        .iter()
+        .find(|c| c.display_name == "meeting_availability")
+        .expect("no availability calendar found");
+    info!(
+        "found availability calendar: {}",
+        availability_calendar.display_name
+    );
 
     let start = chrono::Utc::now();
     let end = start + chrono::Duration::days(7);
 
-    let events = availability_calendar.get_events(&client, start, end).await?;
+    let events = availability_calendar
+        .get_events(&client, start, end)
+        .await?;
     info!("found {} events", events.len());
     info!("first event: {}", events[0]);
 
