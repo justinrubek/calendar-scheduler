@@ -1,6 +1,6 @@
 use reqwest::Client;
 
-use cli::caldav::client::{DavClient, DavCredentials};
+use caldav_utils::client::{DavClient, DavCredentials};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {

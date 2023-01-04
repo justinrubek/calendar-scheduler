@@ -1,14 +1,9 @@
 [package]
-name = "cli"
+name = "caldav-utils"
 version = "0.1.0"
 edition = "2021"
 
-[[bin]]
-name = "cli"
-path = "src/main.rs"
-
 [dependencies]
-caldav-utils = { path = "../caldav-utils" }
 chrono = "0.4.23"
 minidom = "0.15.0"
 # clap = { version = "4.0.19", features = ["derive"] }
@@ -17,5 +12,4 @@ reqwest = { version = "0.11.12", features = ["rustls-tls", "json"] }
 serde_json = "1.0.87"
 tokio = { version = "1", features = ["full"] }
 tracing = "0.1.37"
-tracing-subscriber = "0.3.16"
 url = "2.3.1"
