@@ -9,6 +9,7 @@ repository = "https://github.com/justinrubek/calendar-scheduler"
 
 [dependencies]
 chrono = "0.4.23"
+icalendar = "0.15.1"
 minidom = "0.15.0"
 # clap = { version = "4.0.19", features = ["derive"] }
 reqwest = { version = "0.11.12", features = ["rustls-tls", "json"] }
