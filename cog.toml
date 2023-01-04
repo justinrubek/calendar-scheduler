@@ -1,5 +1,5 @@
 ignore_merge_commits = false
-branch_whitelist = []
+branch_whitelist = ["main"]
 pre_bump_hooks = [
     "bomper {{latest}} {{version}}"
 ]
