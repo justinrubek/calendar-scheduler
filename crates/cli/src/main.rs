@@ -1,4 +1,7 @@
+use chrono::TimeZone;
+use icalendar::Component;
 use reqwest::Client;
+use rrule::{RRuleSet, Tz};
 use tracing::info;
 
 use caldav_utils::client::{DavClient, DavCredentials};
@@ -22,6 +25,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let availability_calendar = calendars
         .iter()
         .find(|c| c.display_name == "meeting_availability")
+        // .find(|c| c.display_name == "testing")
         .expect("no availability calendar found");
     info!(
         "found availability calendar: {}",
@@ -29,13 +33,39 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     );
 
     let start = chrono::Utc::now();
-    let end = start + chrono::Duration::days(7);
+    let end = start + chrono::Duration::days(2);
+    info!("getting events from {} to {}", start, end);
 
     let events = availability_calendar
         .get_events(&client, start, end)
         .await?;
     info!("found {} events", events.len());
-    info!("first event: {:?}", events[0]);
+
+    for (ei, event) in events.iter().enumerate() {
+        let comps = &event.ical.components;
+        info!("found event: {:?}", comps);
+        for (ci, comp) in comps.iter().enumerate() {
+            let ev1 = comp.as_event().unwrap();
+            info!("comp {}: {:?}", ci, ev1);
+        }
+        /*
+        let ev2 = comps.get(1).unwrap();
+        info!("event: {:?}", ev1);
+        info!("event: {:?}", ev2);
+
+        info!("event: {}", ev1.get_start());
+        */
+    }
+
+    // let rrule: RRuleSet = "DTSTART:20230105T130000\nDTEND:20230105T160000\nRRULE:FREQ=WEEKLY".parse().unwrap();
+    let rrule: RRuleSet = "DTSTART:20230106T133500Z\nRRULE:FREQ=DAILY;COUNT=3".parse().unwrap();
+    // let tz_start = Tz::UTC.with_ymd_and_hms(2023, 1, 5, 13, 0, 0).unwrap();
+    let tz_start = Tz::UTC.from_utc_datetime(&start.naive_utc());
+    let tz_end = Tz::UTC.from_utc_datetime(&end.naive_utc());
+    let (detected_events, _) = rrule.after(tz_start).before(tz_end).all(100);
+
+    info!("found {} detected events", detected_events.len());
+    info!("detected events: {:?}", detected_events);
 
     Ok(())
 }
