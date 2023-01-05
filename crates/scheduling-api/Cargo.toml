@@ -4,7 +4,8 @@ version = "0.2.2"
 edition = "2021"
 
 [dependencies]
-axum = "0.6.1"
+axum = { version = "0.6.1", features = ["macros"] }
+caldav-utils = { path = "../caldav-utils" }
 # clap = { version = "4.0.19", features = ["derive"] }
 chrono = { version = "0.4.23", features = ["serde"] }
 # reqwest = { version = "0.11.12", features = ["rustls-tls"] }
