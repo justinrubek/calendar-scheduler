@@ -1,8 +1,8 @@
 use axum::{extract::State, http::StatusCode, Json};
-use caldav_utils::{calendar::Calendar, format::DATETIME as DATETIME_FORMAT, principal::Principal};
+use caldav_utils::{calendar::Calendar, principal::Principal};
 use chrono::TimeZone;
 use icalendar::Component;
-use rrule::{RRule, RRuleSet, Tz, Unvalidated};
+use rrule::{RRule, Tz, Unvalidated};
 use serde::{Deserialize, Serialize};
 use serde_with::DurationSeconds;
 use tracing::info;
@@ -104,7 +104,6 @@ pub fn get_event_matrix(
     // TODO: Determine the timezone of the calendar
     // For now, assume the time comes from US/Central
     let tz = Tz::US__Central;
-    let utc = Tz::UTC;
     let dtstart_local = tz.datetime_from_str(dtstart_str, "%Y%m%dT%H%M%S").unwrap();
     let dtend_local = tz.datetime_from_str(dtend_str, "%Y%m%dT%H%M%S").unwrap();
     // Convert the start and end times to UTC.
@@ -119,7 +118,6 @@ pub fn get_event_matrix(
     info!("dtstart: {:#?}", dtstart);
     info!("dtend: {:#?}", dtend);
     let tz_start = Tz::UTC.from_utc_datetime(&dtstart.naive_utc());
-    let tz_end = Tz::UTC.from_utc_datetime(&dtend.naive_utc());
 
     let range_tz_start = Tz::UTC.from_utc_datetime(&start.naive_utc());
     let range_tz_end = Tz::UTC.from_utc_datetime(&end.naive_utc());
@@ -139,7 +137,7 @@ pub fn get_event_matrix(
         .map(|e| {
             let start = chrono::Utc.from_local_datetime(&e.naive_utc()).unwrap();
             let end = start + event_duration;
-            (start.into(), end.into())
+            (start, end)
         })
         .collect::<Vec<(chrono::DateTime<chrono::Utc>, chrono::DateTime<chrono::Utc>)>>();
     info!("event_ranges: {:#?}", event_ranges);
