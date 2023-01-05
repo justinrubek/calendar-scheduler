@@ -1,5 +1,7 @@
 use caldav_utils::client::DavClient;
 
+/// The details needed to connect to a caldav server
+/// and find relevant calendars to determine availability.
 #[derive(Clone, Debug)]
 pub struct CaldavAvailability {
     pub(crate) availability_calendar: String,

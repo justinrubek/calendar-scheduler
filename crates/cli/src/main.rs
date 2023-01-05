@@ -5,7 +5,7 @@ use axum::{
 use chrono::TimeZone;
 use reqwest::Client;
 use rrule::{RRuleSet, Tz};
-use scheduling_api::{get_availability, get_now, request_availability, state::CaldavAvailability};
+use scheduling_api::{get_availability, get_calendars, get_now, request_availability, state::CaldavAvailability};
 use std::net::SocketAddr;
 use tracing::info;
 
@@ -23,23 +23,25 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let dav_client = DavClient::new(url.to_string(), credentials);
 
+    let caldav_state = CaldavAvailability::new(
+        "meeting_availability".to_string(),
+        "meeting_booked".to_string(),
+        dav_client,
+    );
+
     // caldav_experiment().await?;
-    // scheduler_api(dav_client).await?;
+    // scheduler_api(caldav_state).await?;
+    availability_experiment(caldav_state).await?;
 
     Ok(())
 }
 
-async fn scheduler_api(client: DavClient) -> Result<(), Box<dyn std::error::Error>> {
+#[allow(dead_code)]
+async fn scheduler_api(caldav_state: CaldavAvailability) -> Result<(), Box<dyn std::error::Error>> {
     let port = std::env::var("PORT")
         .ok()
         .and_then(|it| it.parse().ok())
         .unwrap_or(8000);
-
-    let caldav_state = CaldavAvailability::new(
-        "meeting_availability".to_string(),
-        "meeting_booked".to_string(),
-        client,
-    );
 
     let app = Router::new()
         .route("/now", get(get_now))
@@ -117,6 +119,31 @@ async fn caldav_experiment() -> Result<(), Box<dyn std::error::Error>> {
 
     info!("found {} detected events", detected_events.len());
     info!("detected events: {:?}", detected_events);
+
+    Ok(())
+}
+
+#[allow(dead_code)]
+async fn availability_experiment(caldav_state: CaldavAvailability) -> Result<(), Box<dyn std::error::Error>> {
+    let start = chrono::Utc::now();
+    let end = start + chrono::Duration::days(7);
+    info!("getting availability from {} to {}", start, end);
+
+    let client = reqwest::Client::new();
+    let (availability_calendar, booked_calendar) = get_calendars(&client, caldav_state).await?;
+
+    let granularity = chrono::Duration::minutes(30);
+
+    let availability = get_availability(
+        &client,
+        &availability_calendar,
+        &booked_calendar,
+        start,
+        end,
+        granularity,
+    ).await?;
+
+    info!("found {} availability slots", availability.matrix.len());
 
     Ok(())
 }
