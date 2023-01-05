@@ -1,8 +1,5 @@
 use axum::{extract::State, http::StatusCode, Json};
-use caldav_utils::{
-    calendar::Calendar, principal::Principal,
-    format::DATETIME as DATETIME_FORMAT,
-};
+use caldav_utils::{calendar::Calendar, format::DATETIME as DATETIME_FORMAT, principal::Principal};
 use chrono::TimeZone;
 use icalendar::Component;
 use rrule::{RRule, RRuleSet, Tz, Unvalidated};
@@ -67,9 +64,11 @@ pub async fn get_calendars(
     caldav_state: CaldavAvailability,
 ) -> SchedulerResult<(Calendar, Calendar)> {
     let mut principal = caldav_state.davclient.get_principal(client).await?;
-    
-    Ok((get_calendar(client, &mut principal, &caldav_state.availability_calendar).await?,
-     get_calendar(client, &mut principal, &caldav_state.booked_calendar).await?))
+
+    Ok((
+        get_calendar(client, &mut principal, &caldav_state.availability_calendar).await?,
+        get_calendar(client, &mut principal, &caldav_state.booked_calendar).await?,
+    ))
 }
 
 pub fn get_event_matrix(
@@ -109,8 +108,12 @@ pub fn get_event_matrix(
     let dtstart_local = tz.datetime_from_str(dtstart_str, "%Y%m%dT%H%M%S").unwrap();
     let dtend_local = tz.datetime_from_str(dtend_str, "%Y%m%dT%H%M%S").unwrap();
     // Convert the start and end times to UTC.
-    let dtstart = chrono::Utc.from_local_datetime(&dtstart_local.naive_utc()).unwrap();
-    let dtend = chrono::Utc.from_local_datetime(&dtend_local.naive_utc()).unwrap();
+    let dtstart = chrono::Utc
+        .from_local_datetime(&dtstart_local.naive_utc())
+        .unwrap();
+    let dtend = chrono::Utc
+        .from_local_datetime(&dtend_local.naive_utc())
+        .unwrap();
     info!("dtstart_local: {:#?}", dtstart_local);
     info!("dtend_local: {:#?}", dtend_local);
     info!("dtstart: {:#?}", dtstart);
@@ -140,7 +143,7 @@ pub fn get_event_matrix(
         })
         .collect::<Vec<(chrono::DateTime<chrono::Utc>, chrono::DateTime<chrono::Utc>)>>();
     info!("event_ranges: {:#?}", event_ranges);
-    
+
     let matrix = vec![false; num_slots as usize];
     matrix
 }
@@ -168,7 +171,7 @@ pub async fn get_availability(
     let matrix = match event {
         Some(event) => get_event_matrix(start, end, granularity, event),
         // If there are no events, then there is no availability.
-        None => vec![false; num_slots as usize]
+        None => vec![false; num_slots as usize],
     };
 
     Ok(AvailabilityResponse {
