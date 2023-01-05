@@ -5,7 +5,9 @@ use axum::{
 use chrono::TimeZone;
 use reqwest::Client;
 use rrule::{RRuleSet, Tz};
-use scheduling_api::{get_availability, get_calendars, get_now, request_availability, state::CaldavAvailability};
+use scheduling_api::{
+    get_availability, get_calendars, get_now, request_availability, state::CaldavAvailability,
+};
 use std::net::SocketAddr;
 use tracing::info;
 
@@ -124,7 +126,9 @@ async fn caldav_experiment() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[allow(dead_code)]
-async fn availability_experiment(caldav_state: CaldavAvailability) -> Result<(), Box<dyn std::error::Error>> {
+async fn availability_experiment(
+    caldav_state: CaldavAvailability,
+) -> Result<(), Box<dyn std::error::Error>> {
     let start = chrono::Utc::now();
     let end = start + chrono::Duration::days(7);
     info!("getting availability from {} to {}", start, end);
@@ -141,7 +145,8 @@ async fn availability_experiment(caldav_state: CaldavAvailability) -> Result<(),
         start,
         end,
         granularity,
-    ).await?;
+    )
+    .await?;
 
     info!("found {} availability slots", availability.matrix.len());
 
