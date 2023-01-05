@@ -80,7 +80,7 @@ pub fn get_event_matrix(
     let num_slots = (end - start).num_minutes() / granularity.num_minutes();
 
     info!("generating matrix for event: {:#?}", event);
-    // TODO: determine the time of the event compared to the requested time range.
+    // determine the time of the event compared to the requested time range.
     // First, we need to get the properties from the inner icalendar::Event.
     let comps = &event.ical.components;
     // Assume there is only one component.
@@ -122,15 +122,14 @@ pub fn get_event_matrix(
     let range_tz_start = Tz::UTC.from_utc_datetime(&start.naive_utc());
     let range_tz_end = Tz::UTC.from_utc_datetime(&end.naive_utc());
 
-    // TODO: Determine the recurrence rule of the event.
+    // Determine the recurrence rule of the event.
     let rrule: RRule<Unvalidated> = rrule_str.parse().unwrap();
     let rrule = rrule.build(tz_start).unwrap();
     info!("rrule: {:#?}", rrule);
     let (detected_events, _) = rrule.after(range_tz_start).before(range_tz_end).all(100);
     info!("detected_events: {:#?}", detected_events);
 
-    // now, for each event, determine the time range it covers.
-    // then, determine which slots it covers.
+    // for each event, determine the time range it covers.
     let event_duration = dtend - dtstart;
     let event_ranges = detected_events
         .iter()
@@ -142,7 +141,21 @@ pub fn get_event_matrix(
         .collect::<Vec<(chrono::DateTime<chrono::Utc>, chrono::DateTime<chrono::Utc>)>>();
     info!("event_ranges: {:#?}", event_ranges);
 
-    let matrix = vec![false; num_slots as usize];
+    let mut matrix = vec![false; num_slots as usize];
+    // open slots in the matrix according to the event_ranges
+    // this should be done by comparing the start of the event to the
+    // start of the availability matrix, finding the index of slots
+    // that occur during the event, and setting the values to `true`
+    for (begin, end) in event_ranges {
+        let begin_index = ((begin - start).num_minutes() / granularity.num_minutes()) as usize;
+        let end_index = ((end - start).num_minutes() / granularity.num_minutes()) as usize;
+        info!("begin_index: {:#?}", begin_index);
+        info!("end_index: {:#?}", end_index);
+        matrix[begin_index..end_index]
+            .iter_mut()
+            .for_each(|x| *x = true);
+    }
+
     matrix
 }
 
