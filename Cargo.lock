@@ -129,11 +129,13 @@ name = "caldav-utils"
 version = "0.2.2"
 dependencies = [
  "chrono",
+ "http",
  "icalendar",
  "minidom",
  "reqwest",
  "rrule",
  "serde_json",
+ "thiserror",
  "tokio",
  "tracing",
  "url",
@@ -1193,12 +1195,15 @@ dependencies = [
  "axum",
  "caldav-utils",
  "chrono",
+ "reqwest",
  "serde",
  "serde_json",
  "serde_with",
+ "thiserror",
  "tokio",
  "tower",
  "tower-http",
+ "tracing",
 ]
 
 [[package]]

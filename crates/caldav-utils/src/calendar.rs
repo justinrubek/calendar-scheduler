@@ -2,6 +2,7 @@ use minidom::Element;
 use reqwest::Method;
 use url::Url;
 
+use crate::error::CaldavResult;
 use super::client::DavClient;
 use super::format;
 use super::util::find_elements;
@@ -35,7 +36,7 @@ impl Calendar {
         client: &reqwest::Client,
         start: chrono::DateTime<chrono::Utc>,
         end: chrono::DateTime<chrono::Utc>,
-    ) -> Result<Vec<Event>, Box<dyn std::error::Error>> {
+    ) -> CaldavResult<Vec<Event>> {
         // Format timestaps for caldav e.g. "20230108T000000Z";
         let start_str = start.format(format::DATETIME);
         let end_str = end.format(format::DATETIME);

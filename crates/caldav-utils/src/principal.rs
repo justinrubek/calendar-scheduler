@@ -78,6 +78,11 @@ impl Principal {
     }
 
     pub async fn get_calendars(&mut self, client: &Client) -> Result<Vec<Calendar>> {
+        // short-circle if we already have the calendars
+        if !self.calendars.is_empty() {
+            return Ok(self.calendars.clone());
+        }
+        
         let homeset_url = match &self.homeset_url {
             Some(url) => url.clone(),
             None => self.get_home_set(client).await?,

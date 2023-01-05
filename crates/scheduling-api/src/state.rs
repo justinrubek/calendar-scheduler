@@ -2,9 +2,9 @@ use caldav_utils::client::DavClient;
 
 #[derive(Clone, Debug)]
 pub struct CaldavAvailability {
-    availability_calendar: String,
-    booked_calendar: String,
-    davclient: DavClient,
+    pub (crate) availability_calendar: String,
+    pub (crate) booked_calendar: String,
+    pub (crate) davclient: DavClient,
 }
 
 impl CaldavAvailability {
