@@ -1,13 +1,12 @@
 use axum::{
-    extract::State,
-    routing::{get, get_service, post},
+    routing::{get, post},
     Router,
 };
 use chrono::TimeZone;
 use reqwest::Client;
 use rrule::{RRuleSet, Tz};
 use scheduling_api::{
-    get_now, request_availability,
+    get_availability, get_now, request_availability,
     state::CaldavAvailability,
 };
 use std::net::SocketAddr;
@@ -28,7 +27,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let dav_client = DavClient::new(url.to_string(), credentials);
 
     // caldav_experiment().await?;
-    scheduler_api(dav_client).await?;
+    // scheduler_api(dav_client).await?;
+
 
     Ok(())
 }
