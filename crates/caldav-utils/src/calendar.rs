@@ -17,7 +17,7 @@ pub struct Calendar {
 
 #[derive(Debug)]
 pub struct Event {
-    ical: icalendar::Calendar,
+    pub ical: icalendar::Calendar,
 }
 
 impl Calendar {
@@ -89,7 +89,7 @@ impl Calendar {
             .map(|t| {
                 let ical = icalendar::parser::read_calendar(&t).expect("failed to parse ical");
                 Event { 
-                    ical: ical.to_owned().into(),
+                    ical: ical.into(),
                 }
             })
             .collect();

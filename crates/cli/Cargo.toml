@@ -8,6 +8,7 @@ name = "cli"
 path = "src/main.rs"
 
 [dependencies]
+icalendar = "0.15.1"
 caldav-utils = { path = "../caldav-utils" }
 chrono = "0.4.23"
 minidom = "0.15.0"
@@ -19,3 +20,4 @@ tokio = { version = "1", features = ["full"] }
 tracing = "0.1.37"
 tracing-subscriber = "0.3.16"
 url = "2.3.1"
+rrule = "0.10.0"
