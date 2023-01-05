@@ -1,5 +1,8 @@
 [file."crates/caldav-utils/Cargo.toml"]
 search_value = "caldav-utils"
 
+[file."crates/scheduling-api/Cargo.toml"]
+search_value = "scheduling-api"
+
 [file."Cargo.lock"]
-search_value = "caldav-utils"
+search_value = "caldav-utils|scheduling-api"
