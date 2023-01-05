@@ -5,10 +5,7 @@ use axum::{
 use chrono::TimeZone;
 use reqwest::Client;
 use rrule::{RRuleSet, Tz};
-use scheduling_api::{
-    get_availability, get_now, request_availability,
-    state::CaldavAvailability,
-};
+use scheduling_api::{get_availability, get_now, request_availability, state::CaldavAvailability};
 use std::net::SocketAddr;
 use tracing::info;
 
@@ -29,13 +26,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // caldav_experiment().await?;
     // scheduler_api(dav_client).await?;
 
-
     Ok(())
 }
 
-async fn scheduler_api(
-    client: DavClient,
-) -> Result<(), Box<dyn std::error::Error>> {
+async fn scheduler_api(client: DavClient) -> Result<(), Box<dyn std::error::Error>> {
     let port = std::env::var("PORT")
         .ok()
         .and_then(|it| it.parse().ok())
@@ -113,7 +107,9 @@ async fn caldav_experiment() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     // let rrule: RRuleSet = "DTSTART:20230105T130000\nDTEND:20230105T160000\nRRULE:FREQ=WEEKLY".parse().unwrap();
-    let rrule: RRuleSet = "DTSTART:20230106T133500Z\nRRULE:FREQ=DAILY;COUNT=3".parse().unwrap();
+    let rrule: RRuleSet = "DTSTART:20230106T133500Z\nRRULE:FREQ=DAILY;COUNT=3"
+        .parse()
+        .unwrap();
     // let tz_start = Tz::UTC.with_ymd_and_hms(2023, 1, 5, 13, 0, 0).unwrap();
     let tz_start = Tz::UTC.from_utc_datetime(&start.naive_utc());
     let tz_end = Tz::UTC.from_utc_datetime(&end.naive_utc());

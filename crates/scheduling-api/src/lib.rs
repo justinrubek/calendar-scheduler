@@ -1,12 +1,8 @@
-use axum::{
-    extract::State,
-    http::StatusCode,
-    Json,
-};
-use caldav_utils::{principal::Principal, calendar::Calendar};
-use tracing::info;
+use axum::{extract::State, http::StatusCode, Json};
+use caldav_utils::{calendar::Calendar, principal::Principal};
 use serde::{Deserialize, Serialize};
 use serde_with::DurationSeconds;
+use tracing::info;
 
 pub mod error;
 pub mod state;
@@ -15,10 +11,9 @@ pub mod state;
 mod tests;
 
 pub use crate::{
-    error::{SchedulerResult, SchedulerError},
+    error::{SchedulerError, SchedulerResult},
     state::CaldavAvailability,
 };
-
 
 #[serde_with::serde_as]
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -55,10 +50,8 @@ pub async fn get_calendar(
     let calendar = calendars
         .iter()
         .find(|c| c.display_name == calendar_name)
-        .ok_or_else(|| {
-            SchedulerError::CalendarNotFound {
-                calendar_name: calendar_name.to_string(),
-            }
+        .ok_or_else(|| SchedulerError::CalendarNotFound {
+            calendar_name: calendar_name.to_string(),
         })?;
     Ok(calendar.clone())
 }
@@ -72,11 +65,8 @@ pub async fn get_availability(
     granularity: chrono::Duration,
 ) -> SchedulerResult<AvailabilityResponse> {
     // TODO: lookup events in the calendar
-    let events = availability
-        .get_events(&client, start, end)
-        .await?;
+    let events = availability.get_events(&client, start, end).await?;
     info!("found {} events", events.len());
-
 
     // Determine the start and end of the availability matrix
     // Assume that the availability matrix always starts with false values (not available)
@@ -102,9 +92,14 @@ pub async fn request_availability(
     // First, lookup events in the availability calendar
     let client = reqwest::Client::new();
     let mut principal = caldav_state.davclient.get_principal(&client).await?;
-    let availability_calendar = get_calendar(&client, &mut principal, &caldav_state.availability_calendar).await?;
-    let booked_calendar = get_calendar(&client, &mut principal, &caldav_state.booked_calendar).await?;
-    info!("Found calendars: {:?}, {:?}", availability_calendar, booked_calendar);
+    let availability_calendar =
+        get_calendar(&client, &mut principal, &caldav_state.availability_calendar).await?;
+    let booked_calendar =
+        get_calendar(&client, &mut principal, &caldav_state.booked_calendar).await?;
+    info!(
+        "Found calendars: {:?}, {:?}",
+        availability_calendar, booked_calendar
+    );
 
     let granularity = chrono::Duration::minutes(30);
 
@@ -115,7 +110,8 @@ pub async fn request_availability(
         body.start,
         body.end,
         granularity,
-    ).await?;
+    )
+    .await?;
 
     // Err(StatusCode::NOT_IMPLEMENTED)
     Ok(Json(avail))
