@@ -82,7 +82,7 @@ impl Principal {
         if !self.calendars.is_empty() {
             return Ok(self.calendars.clone());
         }
-        
+
         let homeset_url = match &self.homeset_url {
             Some(url) => url.clone(),
             None => self.get_home_set(client).await?,

@@ -2,10 +2,10 @@ use minidom::Element;
 use reqwest::Method;
 use url::Url;
 
-use crate::error::CaldavResult;
 use super::client::DavClient;
 use super::format;
 use super::util::find_elements;
+use crate::error::CaldavResult;
 
 #[derive(Clone, Debug)]
 pub struct Calendar {
@@ -85,13 +85,12 @@ impl Calendar {
 
         let root: Element = text.parse()?;
         let data = find_elements(&root, "calendar-data".to_string());
-        let events: Vec<_> = data.iter()
+        let events: Vec<_> = data
+            .iter()
             .map(|d| d.text())
             .map(|t| {
                 let ical = icalendar::parser::read_calendar(&t).expect("failed to parse ical");
-                Event { 
-                    ical: ical.into(),
-                }
+                Event { ical: ical.into() }
             })
             .collect();
 
