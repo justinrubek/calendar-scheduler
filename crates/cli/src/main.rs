@@ -1,7 +1,12 @@
+use axum::{
+    routing::get,
+    Router,
+};
 use chrono::TimeZone;
-use icalendar::Component;
 use reqwest::Client;
 use rrule::{RRuleSet, Tz};
+use scheduling_api::availability;
+use std::net::SocketAddr;
 use tracing::info;
 
 use caldav_utils::client::{DavClient, DavCredentials};
@@ -10,6 +15,33 @@ use caldav_utils::client::{DavClient, DavCredentials};
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     tracing_subscriber::fmt::init();
 
+    // caldav_experiment().await?;
+    scheduler_api().await?;
+
+    Ok(())
+}
+
+async fn scheduler_api() -> Result<(), Box<dyn std::error::Error>> {
+    let port = std::env::var("PORT")
+        .ok()
+        .and_then(|it| it.parse().ok())
+        .unwrap_or(8000);
+
+    let app = Router::new()
+        .route("/availability", get(availability));
+
+    let addr = SocketAddr::from(([0, 0, 0, 0], port));
+    info!("Listening on {addr}");
+    axum::Server::bind(&addr)
+        .serve(app.into_make_service())
+        .await
+        .unwrap();
+
+    Ok(())
+}
+
+#[allow(dead_code)]
+async fn caldav_experiment() -> Result<(), Box<dyn std::error::Error>> {
     let username = std::env::var("CALDAV_USERNAME").expect("CALDAV_USERNAME not set");
     let password = std::env::var("CALDAV_PASSWORD").expect("CALDAV_PASSWORD not set");
     let credentials = DavCredentials::new(username.to_string(), password.to_string());
@@ -43,7 +75,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     for (ei, event) in events.iter().enumerate() {
         let comps = &event.ical.components;
-        info!("found event: {:?}", comps);
+        info!("event {ei}: {:?}", comps);
         for (ci, comp) in comps.iter().enumerate() {
             let ev1 = comp.as_event().unwrap();
             info!("comp {}: {:?}", ci, ev1);

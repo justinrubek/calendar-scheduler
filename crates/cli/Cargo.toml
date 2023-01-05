@@ -8,6 +8,7 @@ name = "cli"
 path = "src/main.rs"
 
 [dependencies]
+axum = "0.6.1"
 icalendar = "0.15.1"
 caldav-utils = { path = "../caldav-utils" }
 chrono = "0.4.23"
@@ -16,7 +17,10 @@ minidom = "0.15.0"
 reqwest = { version = "0.11.12", features = ["rustls-tls", "json"] }
 # serde = { version = "1", features = ["derive"] }
 serde_json = "1.0.87"
+scheduling-api = { path = "../scheduling-api" }
 tokio = { version = "1", features = ["full"] }
+tower = { version = "0.4", features = ["util"] }
+tower-http = { version = "0.3.0", features = ["fs"] }
 tracing = "0.1.37"
 tracing-subscriber = "0.3.16"
 url = "2.3.1"
