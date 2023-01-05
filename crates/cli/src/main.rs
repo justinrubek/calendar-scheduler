@@ -148,7 +148,10 @@ async fn availability_experiment(
     )
     .await?;
 
-    info!("found {} availability slots", availability.matrix.len());
+    // count the number of available slots (true values in availability.matrix vec)
+    // info!("found {} availability slots", availability.matrix.len());
+    let slots = availability.matrix.iter().filter(|&&x| x).count();
+    info!("found {} availability slots", slots);
 
     Ok(())
 }
