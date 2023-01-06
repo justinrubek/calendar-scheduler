@@ -1,7 +1,7 @@
 use axum::{extract::State, http::StatusCode, Json};
 use caldav_utils::{
     availability::{get_availability, AvailabilityRequest, AvailabilityResponse},
-    caldav::{calendar::Calendar, principal::Principal},
+    caldav::calendar::Calendar,
 };
 use tracing::info;
 
@@ -13,21 +13,6 @@ pub use crate::{
     state::CaldavAvailability,
 };
 
-pub async fn get_calendar(
-    client: &reqwest::Client,
-    principal: &mut Principal,
-    calendar_name: &str,
-) -> SchedulerResult<Calendar> {
-    let calendars = principal.get_calendars(client).await?;
-    let calendar = calendars
-        .iter()
-        .find(|c| c.display_name == calendar_name)
-        .ok_or_else(|| SchedulerError::CalendarNotFound {
-            calendar_name: calendar_name.to_string(),
-        })?;
-    Ok(calendar.clone())
-}
-
 pub async fn get_calendars(
     client: &reqwest::Client,
     caldav_state: CaldavAvailability,
@@ -35,8 +20,12 @@ pub async fn get_calendars(
     let mut principal = caldav_state.davclient.get_principal(client).await?;
 
     Ok((
-        get_calendar(client, &mut principal, &caldav_state.availability_calendar).await?,
-        get_calendar(client, &mut principal, &caldav_state.booked_calendar).await?,
+        principal
+            .get_calendar(client, &caldav_state.availability_calendar)
+            .await?,
+        principal
+            .get_calendar(client, &caldav_state.booked_calendar)
+            .await?,
     ))
 }
 
