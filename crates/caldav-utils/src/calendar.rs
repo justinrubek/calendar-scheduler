@@ -6,6 +6,7 @@ use super::client::DavClient;
 use super::format;
 use super::util::find_elements;
 use crate::error::CaldavResult;
+use crate::event::Event;
 
 #[derive(Clone, Debug)]
 pub struct Calendar {
@@ -14,11 +15,6 @@ pub struct Calendar {
     pub path: String,
 
     pub display_name: String,
-}
-
-#[derive(Debug)]
-pub struct Event {
-    pub ical: icalendar::Calendar,
 }
 
 impl Calendar {

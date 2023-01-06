@@ -32,8 +32,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     );
 
     // caldav_experiment().await?;
-    // scheduler_api(caldav_state).await?;
-    availability_experiment(caldav_state).await?;
+    scheduler_api(caldav_state).await?;
+    // availability_experiment(caldav_state).await?;
 
     Ok(())
 }

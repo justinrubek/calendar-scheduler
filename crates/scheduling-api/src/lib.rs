@@ -71,11 +71,43 @@ pub async fn get_calendars(
     ))
 }
 
+// generates a matrix for an event with no RRULE
+pub fn generate_matrix_no_rrule(
+    range_start: chrono::DateTime<chrono::Utc>,
+    event_start: chrono::DateTime<chrono::Utc>,
+    event_end: chrono::DateTime<chrono::Utc>,
+    num_slots: i64,
+    granularity: chrono::Duration,
+) -> Vec<bool> {
+    let mut matrix = vec![false; num_slots as usize];
+
+    println!(
+        r#"generating matrix for event with no RRULE,
+            range_start: {range_start}, 
+            event_start: {event_start},
+            event_end: {event_end},
+            num_slots: {num_slots},
+            granularity: {granularity}"#,
+    );
+    
+    // modify the matrix to reflect the events
+    let start_index = (event_start - range_start).num_minutes() / granularity.num_minutes();
+    // the end index should be either the end of the event or the end of the range, whichever is earlier
+    let end_index = std::cmp::min(
+        (event_end - range_start).num_minutes() / granularity.num_minutes(),
+        num_slots,
+    );
+    println!("start_index: {start_index}, end_index: {end_index}",);
+    matrix[start_index as usize..end_index as usize].iter_mut().for_each(|x| *x = true);
+
+    matrix
+}
+
 pub fn get_event_matrix(
     start: chrono::DateTime<chrono::Utc>,
     end: chrono::DateTime<chrono::Utc>,
     granularity: chrono::Duration,
-    event: &caldav_utils::calendar::Event,
+    event: &caldav_utils::event::Event,
 ) -> Vec<bool> {
     let num_slots = (end - start).num_minutes() / granularity.num_minutes();
 
@@ -94,18 +126,23 @@ pub fn get_event_matrix(
     info!("dtstart_str: {:#?}", dtstart_str);
     info!("dtend_str: {:#?}", dtend_str);
 
-    // TODO: If there is an RRULE, then we need to generate a list of all the
-    // times that the event occurs. If there is no RRULE, then we can just
-    // use the start and end times.
-
-    let rrule_str = event.property_value("RRULE").unwrap();
-    info!("rrule_str: {:#?}", rrule_str);
-
     // TODO: Determine the timezone of the calendar
     // For now, assume the time comes from US/Central
     let tz = Tz::US__Central;
-    let dtstart_local = tz.datetime_from_str(dtstart_str, "%Y%m%dT%H%M%S").unwrap();
-    let dtend_local = tz.datetime_from_str(dtend_str, "%Y%m%dT%H%M%S").unwrap();
+    
+    // TODO: fix formatting of the date string
+    // It may be necessary to add a trailing Z to the date string
+    let str_has_z = dtstart_str.ends_with('Z');
+    let format = if str_has_z {
+        "%Y%m%dT%H%M%SZ"
+    } else {
+        "%Y%m%dT%H%M%S"
+    };
+
+    // rrule uses its own timezone enum, so we need to convert
+    // through it to get the chrono::DateTime
+    let dtstart_local = tz.datetime_from_str(dtstart_str, format).unwrap();
+    let dtend_local = tz.datetime_from_str(dtend_str, format).unwrap();
     // Convert the start and end times to UTC.
     let dtstart = chrono::Utc
         .from_local_datetime(&dtstart_local.naive_utc())
@@ -121,6 +158,17 @@ pub fn get_event_matrix(
 
     let range_tz_start = Tz::UTC.from_utc_datetime(&start.naive_utc());
     let range_tz_end = Tz::UTC.from_utc_datetime(&end.naive_utc());
+
+    // TODO: If there is an RRULE, then we need to generate a list of all the
+    // times that the event occurs. If there is no RRULE, then we can just
+    // use the start and end times.
+    let rrule_str = match event.property_value("RRULE") {
+        None => return generate_matrix_no_rrule(start, dtstart, dtend, num_slots, granularity),
+        Some(rule) => rule,
+    };
+
+    info!("rrule_str: {:#?}", rrule_str);
+
 
     // Determine the recurrence rule of the event.
     let rrule: RRule<Unvalidated> = rrule_str.parse().unwrap();
@@ -204,8 +252,8 @@ pub async fn request_availability(
     let client = reqwest::Client::new();
     let (availability_calendar, booked_calendar) = get_calendars(&client, caldav_state).await?;
     info!(
-        "Found calendars: {:?}, {:?}",
-        availability_calendar, booked_calendar
+        "Found calendars: {}, {}",
+        availability_calendar.path, booked_calendar.path
     );
 
     let granularity = chrono::Duration::minutes(30);
