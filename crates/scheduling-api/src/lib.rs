@@ -98,7 +98,7 @@ pub fn generate_matrix_no_rrule(
         num_slots,
     );
     println!("start_index: {start_index}, end_index: {end_index}",);
-    matrix[start_index as usize..end_index as usize]
+    matrix[start_index as usize + 1..end_index as usize + 1]
         .iter_mut()
         .for_each(|x| *x = true);
 
@@ -198,7 +198,7 @@ pub fn get_event_matrix(
         let end_index = ((end - start).num_minutes() / granularity.num_minutes()) as usize;
         info!("begin_index: {:#?}", begin_index);
         info!("end_index: {:#?}", end_index);
-        matrix[begin_index..end_index]
+        matrix[begin_index + 1..end_index + 1]
             .iter_mut()
             .for_each(|x| *x = true);
     }

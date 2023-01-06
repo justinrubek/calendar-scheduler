@@ -10,6 +10,12 @@ fn build_event(
 ) -> icalendar::Event {
     let mut event = icalendar::Event::new();
 
+    // because calendar timezones are not supported, we need to convert the start and end times to
+    // US/Central time as the library assumes that is the timezone of the calendar.
+    let timezone = chrono_tz::US::Central;
+    let start = start.with_timezone(&timezone);
+    let end = end.with_timezone(&timezone);
+
     let start_str = format!("{}", start.format(DATETIME));
     let end_str = format!("{}", end.format(DATETIME));
 
@@ -75,6 +81,8 @@ async fn availability_30_min() {
         rrule,
         granularity,
     );
+    println!("expected: {:?}", expected);
+    println!("res: {:?}", res);
     assert_eq!(res, expected);
 
     assert!(true);
