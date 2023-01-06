@@ -81,6 +81,7 @@
       fenix-toolchain
       bacon
       rustfmt
+      cargo-nextest
       # version control
       cocogitto
       inputs'.bomper.packages.cli
