@@ -2,9 +2,10 @@ use minidom::Element;
 use reqwest::{header::CONTENT_TYPE, Client, Method, Result};
 use url::Url;
 
+use crate::util::{find_element, find_elements};
+
 use super::calendar::Calendar;
 use super::client::DavClient;
-use super::util::{find_element, find_elements};
 
 static HOMESET_BODY: &str = r#"
     <d:propfind xmlns:d="DAV:" xmlns:c="urn:ietf:params:xml:ns:caldav" >
@@ -63,6 +64,8 @@ impl Principal {
 
         let text = res.text().await?;
 
+        tracing::debug!("principal response: {}", text);
+
         let root: Element = text.parse().expect("failed to parse xml");
         let homeset =
             find_element(&root, "response".to_string()).expect("failed to find calendar-home-set");
@@ -105,7 +108,7 @@ impl Principal {
 
         let text = res.text().await?;
 
-        tracing::debug!("response: {}", text);
+        tracing::debug!("calendar response: {}", text);
 
         let root: Element = text.parse().expect("failed to parse xml");
         let responses = find_elements(&root, "response".to_string());

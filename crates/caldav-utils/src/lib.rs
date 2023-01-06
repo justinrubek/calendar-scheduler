@@ -1,7 +1,4 @@
-pub mod calendar;
-pub mod client;
+pub mod caldav;
 pub mod error;
-pub mod event;
 pub mod format;
-pub mod principal;
 pub mod util;

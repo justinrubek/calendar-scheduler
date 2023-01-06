@@ -11,7 +11,7 @@ use scheduling_api::{
 use std::net::SocketAddr;
 use tracing::info;
 
-use caldav_utils::client::{DavClient, DavCredentials};
+use caldav_utils::caldav::client::{DavClient, DavCredentials};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -32,8 +32,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     );
 
     // caldav_experiment().await?;
-    scheduler_api(caldav_state).await?;
-    // availability_experiment(caldav_state).await?;
+    // scheduler_api(caldav_state).await?;
+    availability_experiment(caldav_state).await?;
 
     Ok(())
 }

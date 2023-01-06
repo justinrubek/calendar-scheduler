@@ -1,4 +1,4 @@
-use caldav_utils::{event::Event, format::DATETIME};
+use caldav_utils::{caldav::event::Event, format::DATETIME};
 use icalendar::{Component, Property};
 
 use crate::get_event_matrix;
