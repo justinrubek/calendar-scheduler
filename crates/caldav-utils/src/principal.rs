@@ -78,7 +78,7 @@ impl Principal {
     }
 
     pub async fn get_calendars(&mut self, client: &Client) -> Result<Vec<Calendar>> {
-        // short-circle if we already have the calendars
+        // short-circuit if we already have the calendars
         if !self.calendars.is_empty() {
             return Ok(self.calendars.clone());
         }
