@@ -65,6 +65,7 @@
       inherit (common-build-args) src;
       hooks = {
         alejandra.enable = true;
+        rustfmt.enable = true;
       };
     };
 
