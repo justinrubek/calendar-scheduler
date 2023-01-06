@@ -2,6 +2,7 @@ use minidom::Element;
 use reqwest::{header::CONTENT_TYPE, Client, Method, Result};
 use url::Url;
 
+use crate::error::{CaldavError, CaldavResult};
 use crate::util::{find_element, find_elements};
 
 use super::calendar::Calendar;
@@ -137,5 +138,20 @@ impl Principal {
 
         self.calendars = calendars.clone();
         Ok(calendars)
+    }
+
+    pub async fn get_calendar(
+        &mut self,
+        client: &reqwest::Client,
+        calendar_name: &str,
+    ) -> CaldavResult<Calendar> {
+        let calendars = self.get_calendars(client).await?;
+        let calendar = calendars
+            .iter()
+            .find(|c| c.display_name == calendar_name)
+            .ok_or_else(|| CaldavError::CalendarNotFound {
+                calendar_name: calendar_name.to_string(),
+            })?;
+        Ok(calendar.clone())
     }
 }

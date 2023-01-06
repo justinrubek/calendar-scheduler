@@ -8,8 +8,6 @@ use thiserror::Error;
 pub enum SchedulerError {
     #[error(transparent)]
     Caldav(#[from] caldav_utils::error::CaldavError),
-    #[error("Calendar not found: {calendar_name}")]
-    CalendarNotFound { calendar_name: String },
     #[error(transparent)]
     Reqwest(#[from] reqwest::Error),
 }
@@ -20,7 +18,6 @@ impl IntoResponse for SchedulerError {
     fn into_response(self) -> Response {
         let body = match self {
             SchedulerError::Caldav(e) => e.to_string(),
-            SchedulerError::CalendarNotFound { .. } => self.to_string(),
             SchedulerError::Reqwest(err) => err.to_string(),
         };
 
