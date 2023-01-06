@@ -2,16 +2,16 @@ use axum::{
     routing::{get, post},
     Router,
 };
+use caldav_utils::{
+    availability::get_availability,
+    caldav::client::{DavClient, DavCredentials},
+};
 use chrono::TimeZone;
 use reqwest::Client;
 use rrule::{RRuleSet, Tz};
-use scheduling_api::{
-    get_availability, get_calendars, get_now, request_availability, state::CaldavAvailability,
-};
+use scheduling_api::{get_calendars, get_now, request_availability, state::CaldavAvailability};
 use std::net::SocketAddr;
 use tracing::info;
-
-use caldav_utils::caldav::client::{DavClient, DavCredentials};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
