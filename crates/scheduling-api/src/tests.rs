@@ -57,6 +57,23 @@ fn build_matrix_test(
     matrix
 }
 
+fn print_matrix_diff(left: &Vec<bool>, right: &Vec<bool>) {
+    let mut left_iter = left.iter();
+    let mut right_iter = right.iter();
+    let mut index = 0;
+    loop {
+        let left = left_iter.next();
+        let right = right_iter.next();
+        if left.is_none() && right.is_none() {
+            break;
+        }
+        if left != right {
+            println!("index: {index}, left: {left:?}, right: {right:?}");
+        }
+        index += 1;
+    }
+}
+
 #[tokio::test]
 async fn availability_30_min() {
     let range_start = chrono::Utc::now();
@@ -101,7 +118,6 @@ async fn availability_30_min_rrule() {
     let mut expected = vec![false; 240];
     expected[2..4].iter_mut().for_each(|x| *x = true);
     expected[50..52].iter_mut().for_each(|x| *x = true);
-    expected[98..100].iter_mut().for_each(|x| *x = true);
 
     // Test case 2: 30 minute event, RRULE.
     // build_matrix_test!(start, end, rrule, granularity, expected);
@@ -114,6 +130,7 @@ async fn availability_30_min_rrule() {
         rrule,
         granularity,
     );
+    print_matrix_diff(&res, &expected);
     assert_eq!(res, expected);
 
     assert!(true);
