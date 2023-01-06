@@ -89,7 +89,7 @@ pub fn generate_matrix_no_rrule(
             num_slots: {num_slots},
             granularity: {granularity}"#,
     );
-    
+
     // modify the matrix to reflect the events
     let start_index = (event_start - range_start).num_minutes() / granularity.num_minutes();
     // the end index should be either the end of the event or the end of the range, whichever is earlier
@@ -98,7 +98,9 @@ pub fn generate_matrix_no_rrule(
         num_slots,
     );
     println!("start_index: {start_index}, end_index: {end_index}",);
-    matrix[start_index as usize..end_index as usize].iter_mut().for_each(|x| *x = true);
+    matrix[start_index as usize..end_index as usize]
+        .iter_mut()
+        .for_each(|x| *x = true);
 
     matrix
 }
@@ -129,7 +131,7 @@ pub fn get_event_matrix(
     // TODO: Determine the timezone of the calendar
     // For now, assume the time comes from US/Central
     let tz = Tz::US__Central;
-    
+
     // TODO: fix formatting of the date string
     // It may be necessary to add a trailing Z to the date string
     let str_has_z = dtstart_str.ends_with('Z');
@@ -139,8 +141,6 @@ pub fn get_event_matrix(
         "%Y%m%dT%H%M%S"
     };
 
-    // rrule uses its own timezone enum, so we need to convert
-    // through it to get the chrono::DateTime
     let dtstart_local = tz.datetime_from_str(dtstart_str, format).unwrap();
     let dtend_local = tz.datetime_from_str(dtend_str, format).unwrap();
     // Convert the start and end times to UTC.
@@ -168,7 +168,6 @@ pub fn get_event_matrix(
     };
 
     info!("rrule_str: {:#?}", rrule_str);
-
 
     // Determine the recurrence rule of the event.
     let rrule: RRule<Unvalidated> = rrule_str.parse().unwrap();
