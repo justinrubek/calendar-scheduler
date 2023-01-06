@@ -1,7 +1,6 @@
-use caldav_utils::{caldav::event::Event, format::DATETIME};
 use icalendar::{Component, Property};
 
-use crate::get_event_matrix;
+use crate::{availability::get_event_matrix, caldav::event::Event, format::DATETIME};
 
 fn build_event(
     start: chrono::DateTime<chrono::Utc>,
