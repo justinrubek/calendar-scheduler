@@ -1,5 +1,5 @@
 use axum::{extract::State, http::StatusCode, Json};
-use caldav_utils::{calendar::Calendar, principal::Principal};
+use caldav_utils::caldav::{calendar::Calendar, principal::Principal};
 use chrono::TimeZone;
 use icalendar::Component;
 use rrule::{RRule, Tz, Unvalidated};
@@ -109,7 +109,7 @@ pub fn get_event_matrix(
     start: chrono::DateTime<chrono::Utc>,
     end: chrono::DateTime<chrono::Utc>,
     granularity: chrono::Duration,
-    event: &caldav_utils::event::Event,
+    event: &caldav_utils::caldav::event::Event,
 ) -> Vec<bool> {
     let num_slots = (end - start).num_minutes() / granularity.num_minutes();
 

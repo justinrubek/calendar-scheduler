@@ -2,11 +2,12 @@ use minidom::Element;
 use reqwest::Method;
 use url::Url;
 
-use super::client::DavClient;
-use super::format;
-use super::util::find_elements;
 use crate::error::CaldavResult;
-use crate::event::Event;
+use crate::format;
+use crate::util::find_elements;
+
+use super::client::DavClient;
+use super::event::Event;
 
 #[derive(Clone, Debug)]
 pub struct Calendar {

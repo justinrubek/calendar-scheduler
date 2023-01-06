@@ -1,4 +1,4 @@
-use caldav_utils::client::DavClient;
+use caldav_utils::caldav::client::DavClient;
 
 /// The details needed to connect to a caldav server
 /// and find relevant calendars to determine availability.

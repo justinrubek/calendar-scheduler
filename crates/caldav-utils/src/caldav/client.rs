@@ -2,8 +2,9 @@ use minidom::Element;
 use reqwest::{header::CONTENT_TYPE, Method, Result};
 use url::Url;
 
+use crate::util::find_element;
+
 use super::principal::Principal;
-use super::util::find_element;
 
 static DAVCLIENT_BODY: &str = r#"
     <d:propfind xmlns:d="DAV:">
