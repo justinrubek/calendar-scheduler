@@ -28,4 +28,3 @@ impl Event {
         self.ical.append_property(property);
     }
 }
-

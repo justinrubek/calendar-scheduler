@@ -1,7 +1,4 @@
-use caldav_utils::{
-    format::DATETIME,
-    event::Event
-};
+use caldav_utils::{event::Event, format::DATETIME};
 use icalendar::{Component, Property};
 
 use crate::get_event_matrix;
@@ -25,9 +22,7 @@ fn build_event(
     event
 }
 
-fn build_calendar(
-    events: Vec<icalendar::Event>,
-) -> icalendar::Calendar {
+fn build_calendar(events: Vec<icalendar::Event>) -> icalendar::Calendar {
     let mut calendar = icalendar::Calendar::new();
     events.into_iter().for_each(|event| {
         calendar.push(event);
@@ -45,22 +40,16 @@ fn build_matrix_test(
     start: chrono::DateTime<chrono::Utc>,
     end: chrono::DateTime<chrono::Utc>,
     rrule: Option<String>,
-    granularity: chrono::Duration
+    granularity: chrono::Duration,
 ) -> Vec<bool> {
     let events = vec![build_event(start, end, rrule)];
     let calendar = build_calendar(events);
     let event = Event::new(calendar);
 
-    let matrix = get_event_matrix(
-        range_start,
-        range_end,
-        granularity,
-        &event,
-    );
+    let matrix = get_event_matrix(range_start, range_end, granularity, &event);
 
     matrix
 }
-
 
 #[tokio::test]
 async fn availability_30_min() {
