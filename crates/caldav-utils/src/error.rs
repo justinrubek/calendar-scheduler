@@ -2,6 +2,8 @@ use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum CaldavError {
+    #[error("Error calling caldav server: {0}")]
+    ServerResponse(String),
     #[error("Calendar not found: {calendar_name}")]
     CalendarNotFound { calendar_name: String },
     #[error(transparent)]
