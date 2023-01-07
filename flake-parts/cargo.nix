@@ -86,6 +86,7 @@
       cocogitto
       inputs'.bomper.packages.cli
       # misc
+      pkgs.radicale
     ];
 
     extraBuildInputs = [
