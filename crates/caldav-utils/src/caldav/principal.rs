@@ -154,4 +154,64 @@ impl Principal {
             })?;
         Ok(calendar.clone())
     }
+
+    pub async fn create_calendar(
+        &mut self,
+        client: &reqwest::Client,
+        calendar_name: &str,
+    ) -> CaldavResult<Calendar> {
+        let homeset_url = match &self.homeset_url {
+            Some(url) => url.clone(),
+            None => self.get_home_set(client).await?,
+        };
+
+        let method = Method::from_bytes(b"MKCALENDAR").expect("failed to create MKCALENDAR method");
+
+        let res = client
+            .request(method, homeset_url.as_str())
+            .header(CONTENT_TYPE, "application/xml")
+            .basic_auth(
+                &self.client.credentials.username,
+                Some(&self.client.credentials.password),
+            )
+            .body(format!(
+                r#"
+                <d:mkcalendar xmlns:d="DAV:" xmlns:c="urn:ietf:params:xml:ns:caldav">
+                    <d:set>
+                        <d:prop>
+                            <d:displayname>{calendar_name}</d:displayname>
+                            <d:resourcetype>
+                                <d:collection />
+                                <c:calendar />
+                            </d:resourcetype>
+                            <c:supported-calendar-component-set>
+                                <c:comp name="VEVENT" />
+                            </c:supported-calendar-component-set>
+                        </d:prop>
+                    </d:set>
+                </d:mkcalendar>
+            "#
+            ))
+            .send()
+            .await?;
+
+        let text = res.text().await?;
+
+        tracing::debug!("calendar response: {}", text);
+
+        let root: Element = text.parse().expect("failed to parse xml");
+        let href = find_element(&root, "href".to_string())
+            .expect("failed to find href")
+            .text();
+
+        let calendar = Calendar::new(
+            self.client.clone(),
+            self.url.clone(),
+            href,
+            calendar_name.to_string(),
+        );
+
+        self.calendars.push(calendar.clone());
+        Ok(calendar)
+    }
 }
