@@ -21,6 +21,7 @@ pub(crate) struct Calendar {
 pub(crate) enum CalendarCommands {
     Create(CreateCalendarCommand),
     List,
+    ListEvents(ListEventsCommand),
 }
 
 #[derive(clap::Args, Debug)]

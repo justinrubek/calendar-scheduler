@@ -58,6 +58,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                         println!("calendar {} at {}", calendar.display_name, calendar.path);
                     }
                 }
+                CalendarCommands::ListEvents(list) => {
+                    let client = Client::new();
+                    let mut principal = caldav_state.davclient().get_principal(&client).await?;
+                    let calendar = principal.get_calendar(&client, &list.name).await?;
+                    let events = calendar.get_events(&client, list.start, list.end).await?;
+                    for event in events {
+                        tracing::info!("event: {:?}", event);
+                    }
+                }
             }
         }
     }
