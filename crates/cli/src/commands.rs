@@ -7,6 +7,7 @@ pub(crate) struct Args {
 
 #[derive(clap::Subcommand, Debug)]
 pub(crate) enum Commands {
+    Server(Server),
     Calendar(Calendar),
 }
 
@@ -27,4 +28,23 @@ pub(crate) enum CalendarCommands {
 #[derive(clap::Args, Debug)]
 pub(crate) struct CreateCalendarCommand {
     pub name: String,
+}
+
+#[derive(clap::Args, Debug)]
+pub(crate) struct ListEventsCommand {
+    pub name: String,
+    pub start: chrono::DateTime<chrono::Utc>,
+    pub end: chrono::DateTime<chrono::Utc>,
+}
+
+#[derive(clap::Args, Debug)]
+#[command(args_conflicts_with_subcommands = true)]
+pub(crate) struct Server {
+    #[clap(subcommand)]
+    pub command: ServerCommands,
+}
+
+#[derive(clap::Subcommand, Debug)]
+pub(crate) enum ServerCommands {
+    Start,
 }

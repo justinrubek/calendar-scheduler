@@ -8,6 +8,7 @@ use caldav_utils::{
 };
 use chrono::TimeZone;
 use clap::Parser;
+use commands::ServerCommands;
 use reqwest::Client;
 use rrule::{RRuleSet, Tz};
 use scheduling_api::{get_calendars, get_now, request_availability, state::CaldavAvailability};
@@ -39,6 +40,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // process commands
     let args = commands::Args::parse();
     match args.command {
+        Commands::Server(server) => {
+            let cmd = server.command;
+            match cmd {
+                ServerCommands::Start => scheduler_api(caldav_state).await?,
+            }
+        }
         Commands::Calendar(calendar) => {
             let cmd = calendar.command;
             match cmd {
