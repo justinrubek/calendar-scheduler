@@ -21,4 +21,8 @@ impl CaldavAvailability {
             davclient,
         }
     }
+
+    pub fn davclient(&self) -> &DavClient {
+        &self.davclient
+    }
 }

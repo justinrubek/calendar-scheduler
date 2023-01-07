@@ -7,16 +7,21 @@ use caldav_utils::{
     caldav::client::{DavClient, DavCredentials},
 };
 use chrono::TimeZone;
+use clap::Parser;
 use reqwest::Client;
 use rrule::{RRuleSet, Tz};
 use scheduling_api::{get_calendars, get_now, request_availability, state::CaldavAvailability};
 use std::net::SocketAddr;
 use tracing::info;
 
+mod commands;
+use crate::commands::{CalendarCommands, Commands};
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     tracing_subscriber::fmt::init();
 
+    // read configuration
     let username = std::env::var("CALDAV_USERNAME").expect("CALDAV_USERNAME not set");
     let password = std::env::var("CALDAV_PASSWORD").expect("CALDAV_PASSWORD not set");
     let credentials = DavCredentials::new(username.to_string(), password.to_string());
@@ -31,9 +36,33 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         dav_client,
     );
 
+    // process commands
+    let args = commands::Args::parse();
+    match args.command {
+        Commands::Calendar(calendar) => {
+            let cmd = calendar.command;
+            match cmd {
+                CalendarCommands::Create(create) => {
+                    let client = Client::new();
+                    let mut principal = caldav_state.davclient().get_principal(&client).await?;
+                    let calendar = principal.create_calendar(&client, &create.name).await?;
+                    println!("Created calendar: {}", calendar.path);
+                }
+                CalendarCommands::List => {
+                    let client = Client::new();
+                    let mut principal = caldav_state.davclient().get_principal(&client).await?;
+                    let calendars = principal.get_calendars(&client).await?;
+                    for calendar in calendars {
+                        println!("calendar {} at {}", calendar.display_name, calendar.path);
+                    }
+                }
+            }
+        }
+    }
+
     // caldav_experiment().await?;
     // scheduler_api(caldav_state).await?;
-    availability_experiment(caldav_state).await?;
+    // availability_experiment(caldav_state).await?;
 
     Ok(())
 }
