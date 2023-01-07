@@ -9,12 +9,6 @@ fn build_event(
 ) -> icalendar::Event {
     let mut event = icalendar::Event::new();
 
-    // because calendar timezones are not supported, we need to convert the start and end times to
-    // US/Central time as the library assumes that is the timezone of the calendar.
-    let timezone = chrono_tz::US::Central;
-    let start = start.with_timezone(&timezone);
-    let end = end.with_timezone(&timezone);
-
     let start_str = format!("{}", start.format(DATETIME));
     let end_str = format!("{}", end.format(DATETIME));
 
@@ -51,7 +45,7 @@ fn build_matrix_test(
     let calendar = build_calendar(events);
     let event = Event::new(calendar);
 
-    let matrix = get_event_matrix(range_start, range_end, granularity, &event);
+    let matrix = get_event_matrix(range_start, range_end, granularity, &event, None);
 
     matrix
 }
