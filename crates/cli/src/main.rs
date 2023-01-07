@@ -45,7 +45,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 CalendarCommands::Create(create) => {
                     let client = Client::new();
                     let mut principal = caldav_state.davclient().get_principal(&client).await?;
-                    let calendar = principal.create_calendar(&client, &create.name).await?;
+                    let calendar = principal
+                        .create_calendar_mkcol(&client, &create.name)
+                        .await?;
                     println!("Created calendar: {}", calendar.path);
                 }
                 CalendarCommands::List => {

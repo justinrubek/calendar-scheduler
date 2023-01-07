@@ -1,5 +1,8 @@
 use minidom::Element;
-use reqwest::{header::CONTENT_TYPE, Client, Method, Result};
+use reqwest::{
+    header::{CONTENT_LENGTH, CONTENT_TYPE},
+    Client, Method, Result,
+};
 use url::Url;
 
 use crate::error::{CaldavError, CaldavResult};
@@ -155,63 +158,80 @@ impl Principal {
         Ok(calendar.clone())
     }
 
-    pub async fn create_calendar(
+    // TODO: implement this
+    pub async fn create_calendar_mkcol(
         &mut self,
         client: &reqwest::Client,
         calendar_name: &str,
     ) -> CaldavResult<Calendar> {
-        let homeset_url = match &self.homeset_url {
+        let mut url = match &self.homeset_url {
             Some(url) => url.clone(),
             None => self.get_home_set(client).await?,
         };
+        // generate a unique id for the calendar
+        let id = ksuid::Ksuid::generate().to_base62();
+        url.set_path(&format!("{}{}/", url.path(), id));
+        let url = format!("{url}");
+        tracing::info!("url: {}", url);
 
-        let method = Method::from_bytes(b"MKCALENDAR").expect("failed to create MKCALENDAR method");
+        let method = Method::from_bytes(b"MKCOL").expect("failed to create MKCOL method");
 
+        let body = format!(
+            r#"<?xml version="1.0"?>
+            <mkcol xmlns="DAV:" xmlns:C="urn:ietf:params:xml:ns:caldav" xmlns:ICAL="http://apple.com/ns/ical/">
+              <set>
+                <prop>
+                  <resourcetype>
+                    <collection />
+                    <C:calendar />
+                  </resourcetype>
+                  <C:supported-calendar-component-set>
+                    <C:comp name="VEVENT" />
+                    <C:comp name="VJOURNAL" />
+                    <C:comp name="VTODO" />
+                  </C:supported-calendar-component-set>
+                  <displayname>{calendar_name}</displayname>
+                  <ICAL:calendar-timezone>UTC</ICAL:calendar-timezone>
+                  <ICAL:calendar-color>#ff0000</ICAL:calendar-color>
+                </prop>
+              </set>
+            </mkcol>
+            "#
+        );
+
+        tracing::debug!("calendar: {}", body);
+
+        // Make sure to set the calendar timezone to UTC
         let res = client
-            .request(method, homeset_url.as_str())
+            .request(method, url.clone())
             .header(CONTENT_TYPE, "application/xml")
+            .header(CONTENT_LENGTH, body.len())
             .basic_auth(
                 &self.client.credentials.username,
                 Some(&self.client.credentials.password),
             )
-            .body(format!(
-                r#"
-                <d:mkcalendar xmlns:d="DAV:" xmlns:c="urn:ietf:params:xml:ns:caldav">
-                    <d:set>
-                        <d:prop>
-                            <d:displayname>{calendar_name}</d:displayname>
-                            <d:resourcetype>
-                                <d:collection />
-                                <c:calendar />
-                            </d:resourcetype>
-                            <c:supported-calendar-component-set>
-                                <c:comp name="VEVENT" />
-                            </c:supported-calendar-component-set>
-                        </d:prop>
-                    </d:set>
-                </d:mkcalendar>
-            "#
-            ))
+            .body(body)
             .send()
             .await?;
 
+        tracing::debug!("response: {:?}", res);
+        let res = match res.status() {
+            reqwest::StatusCode::CREATED => res,
+            _ => {
+                let error = res.text().await?;
+                return Err(CaldavError::ServerResponse(error));
+            }
+        };
         let text = res.text().await?;
 
         tracing::debug!("calendar response: {}", text);
 
-        let root: Element = text.parse().expect("failed to parse xml");
-        let href = find_element(&root, "href".to_string())
-            .expect("failed to find href")
-            .text();
-
-        let calendar = Calendar::new(
+        Ok(Calendar::new(
             self.client.clone(),
             self.url.clone(),
-            href,
+            // TODO: this is wrong, need to get the href from the response
+            url,
             calendar_name.to_string(),
-        );
-
-        self.calendars.push(calendar.clone());
-        Ok(calendar)
+        ))
     }
 }
