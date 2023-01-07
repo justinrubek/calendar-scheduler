@@ -2,6 +2,24 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## [0.4.0](https://github.com/justinrubek/calendar-scheduler/compare/0.3.0..0.4.0) - 2023-01-07
+#### Documentation
+- comment clap commands - ([0860ae3](https://github.com/justinrubek/calendar-scheduler/commit/0860ae3e47b678dbc65e751b56d454531067899b)) - [@justinrubek](https://github.com/justinrubek)
+#### Features
+- implemented UTC timezone for calendars - ([a2b3a43](https://github.com/justinrubek/calendar-scheduler/commit/a2b3a43c488a999b69aa27bad6a022a97b4a7234)) - [@justinrubek](https://github.com/justinrubek)
+- start api command - ([3e85263](https://github.com/justinrubek/calendar-scheduler/commit/3e85263cd98608cd6018fec8859ebb244ccb3ba2)) - [@justinrubek](https://github.com/justinrubek)
+- list events command - ([9f8377f](https://github.com/justinrubek/calendar-scheduler/commit/9f8377f80a55926bb77cf19e574d8cce1741fc18)) - [@justinrubek](https://github.com/justinrubek)
+- create calendars via cli - ([a60c02f](https://github.com/justinrubek/calendar-scheduler/commit/a60c02fe2f9028a898b7d094cf95825de23d56a0)) - [@justinrubek](https://github.com/justinrubek)
+- parse args with clap - ([68da8a1](https://github.com/justinrubek/calendar-scheduler/commit/68da8a1219608c5f4eb2275db89c311cfd1b2f67)) - [@justinrubek](https://github.com/justinrubek)
+#### Miscellaneous Chores
+- add radicale to devshell - ([a5f07b4](https://github.com/justinrubek/calendar-scheduler/commit/a5f07b4c16d8a33706e5e6c57162f3db3bf28b47)) - [@justinrubek](https://github.com/justinrubek)
+- changes from review - ([8d67753](https://github.com/justinrubek/calendar-scheduler/commit/8d677535ea0391df821807d2955ee87a29c16db9)) - [@justinrubek](https://github.com/justinrubek)
+- cleanup old cli code - ([9c81db7](https://github.com/justinrubek/calendar-scheduler/commit/9c81db74c0eec6080879baea4dc8676cc6229218)) - [@justinrubek](https://github.com/justinrubek)
+#### Tests
+- remove timezone from test - ([4e8b4ce](https://github.com/justinrubek/calendar-scheduler/commit/4e8b4cee010f4db6a43580a5e5772af180d35bf8)) - [@justinrubek](https://github.com/justinrubek)
+
+- - -
+
 ## [0.3.0](https://github.com/justinrubek/calendar-scheduler/compare/0.2.2..0.3.0) - 2023-01-06
 #### Bug Fixes
 - include availability module - ([94199cc](https://github.com/justinrubek/calendar-scheduler/commit/94199cc150b1a0440679b85d35080d8e3acf84f3)) - [@justinrubek](https://github.com/justinrubek)
