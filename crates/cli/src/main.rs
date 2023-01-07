@@ -29,9 +29,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let dav_client = DavClient::new(url.to_string(), credentials);
 
+    let availability_calendar =
+        std::env::var("AVAILABLE_CALENDAR").expect("AVAILABLE_CALENDAR not set");
+    let booked_calendar = std::env::var("BOOKED_CALENDAR").expect("BOOKED_CALENDAR not set");
+
     let caldav_state = CaldavAvailability::new(
-        "meeting_availability".to_string(),
-        "meeting_booked".to_string(),
+        availability_calendar.to_string(),
+        booked_calendar.to_string(),
         dav_client,
     );
 
@@ -68,6 +72,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     let mut principal = caldav_state.davclient().get_principal(&client).await?;
                     let calendar = principal.get_calendar(&client, &list.name).await?;
                     let events = calendar.get_events(&client, list.start, list.end).await?;
+                    tracing::info!("Found {} events", events.len());
                     for event in events {
                         tracing::info!("event: {:?}", event);
                     }
