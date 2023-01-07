@@ -21,9 +21,10 @@ static HOMESET_BODY: &str = r#"
 "#;
 
 static CALENDAR_BODY: &str = r#"
-    <d:propfind xmlns:d="DAV:" xmlns:c="urn:ietf:params:xml:ns:caldav" >
+    <d:propfind xmlns:d="DAV:" xmlns:c="urn:ietf:params:xml:ns:caldav" xmlns:ical="http://apple.com/ns/ical/" >
        <d:prop>
          <d:displayname />
+         <ical:calendar-timezone />
          <d:resourcetype />
          <c:supported-calendar-component-set />
        </d:prop>
@@ -126,6 +127,10 @@ impl Principal {
                     return None;
                 }
 
+                let timezone = find_element(response, "calendar-timezone".to_string())
+                    .expect("failed to find calendar-timezone")
+                    .text();
+
                 let href = find_element(response, "href".to_string())
                     .expect("failed to find href")
                     .text();
@@ -135,6 +140,7 @@ impl Principal {
                     self.url.clone(),
                     href,
                     displayname,
+                    Some(timezone),
                 ))
             })
             .collect();
@@ -231,6 +237,7 @@ impl Principal {
             // TODO: this is wrong, need to get the href from the response
             url,
             calendar_name.to_string(),
+            Some("UTC".to_string()),
         ))
     }
 }

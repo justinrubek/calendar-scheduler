@@ -16,15 +16,23 @@ pub struct Calendar {
     pub path: String,
 
     pub display_name: String,
+    pub timezone: Option<String>,
 }
 
 impl Calendar {
-    pub fn new(client: DavClient, url: Url, path: String, display_name: String) -> Calendar {
+    pub fn new(
+        client: DavClient,
+        url: Url,
+        path: String,
+        display_name: String,
+        timezone: Option<String>,
+    ) -> Calendar {
         Calendar {
             client,
             url,
             path,
             display_name,
+            timezone,
         }
     }
 

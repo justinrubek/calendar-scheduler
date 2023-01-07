@@ -72,6 +72,7 @@ pub fn get_event_matrix(
     end: chrono::DateTime<chrono::Utc>,
     granularity: chrono::Duration,
     event: &Event,
+    timezone: Option<String>,
 ) -> Vec<bool> {
     let num_slots = (end - start).num_minutes() / granularity.num_minutes();
 
@@ -90,9 +91,16 @@ pub fn get_event_matrix(
     info!("dtstart_str: {:#?}", dtstart_str);
     info!("dtend_str: {:#?}", dtend_str);
 
-    // TODO: Determine the timezone of the calendar
-    // For now, assume the time comes from US/Central
-    let tz = Tz::US__Central;
+    let tz = match timezone {
+        Some(tz) => {
+            let tz_str = tz.as_str();
+            match tz_str {
+                "UTC" => Tz::UTC,
+                _ => unimplemented!(),
+            }
+        }
+        _ => Tz::UTC,
+    };
 
     // TODO: fix formatting of the date string
     // It may be necessary to add a trailing Z to the date string
@@ -189,7 +197,13 @@ pub async fn get_availability(
     // Do not return an error, just return matrix of false.
     let event = events.first();
     let matrix = match event {
-        Some(event) => get_event_matrix(start, end, granularity, event),
+        Some(event) => get_event_matrix(
+            start,
+            end,
+            granularity,
+            event,
+            availability.timezone.clone(),
+        ),
         // If there are no events, then there is no availability.
         None => vec![false; num_slots as usize],
     };
