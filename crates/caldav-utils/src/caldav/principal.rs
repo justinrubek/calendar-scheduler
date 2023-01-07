@@ -158,7 +158,6 @@ impl Principal {
         Ok(calendar.clone())
     }
 
-    // TODO: implement this
     pub async fn create_calendar_mkcol(
         &mut self,
         client: &reqwest::Client,
