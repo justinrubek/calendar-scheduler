@@ -268,18 +268,11 @@ dependencies = [
  "caldav-utils",
  "chrono",
  "clap",
- "icalendar",
- "minidom",
  "reqwest",
- "rrule",
  "scheduling-api",
- "serde_json",
  "tokio",
- "tower",
- "tower-http",
  "tracing",
  "tracing-subscriber",
- "url",
 ]
 
 [[package]]
