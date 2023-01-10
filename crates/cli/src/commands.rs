@@ -27,7 +27,7 @@ pub(crate) enum CalendarCommands {
     /// list all calendars
     List,
     /// list events in a calendar between two datetimes
-    ListEvents(ListEventsCommand),
+    Event(Event),
     /// get the availability of a calendar between two datetimes
     Availability(AvailabilityCommand),
 }
@@ -38,8 +38,35 @@ pub(crate) struct CreateCalendarCommand {
 }
 
 #[derive(clap::Args, Debug)]
+#[command(args_conflicts_with_subcommands = true)]
+pub(crate) struct Event {
+    #[clap(subcommand)]
+    pub command: EventCommands,
+}
+
+#[derive(clap::Subcommand, Debug)]
+pub(crate) enum EventCommands {
+    /// list events in a calendar between two datetimes
+    List(ListEventsCommand),
+    /// create an event in a calendar
+    Create(CreateEventCommand),
+}
+
+#[derive(clap::Args, Debug)]
 pub(crate) struct ListEventsCommand {
     /// the name of the calendar
+    pub name: String,
+    /// the start of the time range
+    pub start: chrono::DateTime<chrono::Utc>,
+    /// the end of the time range
+    pub end: chrono::DateTime<chrono::Utc>,
+}
+
+#[derive(clap::Args, Debug)]
+pub(crate) struct CreateEventCommand {
+    /// the name of the calendar
+    pub calendar: String,
+    /// the name of the event
     pub name: String,
     /// the start of the time range
     pub start: chrono::DateTime<chrono::Utc>,

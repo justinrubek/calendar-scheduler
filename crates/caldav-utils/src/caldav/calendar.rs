@@ -1,8 +1,9 @@
+use icalendar::{Component, EventLike};
 use minidom::Element;
 use reqwest::Method;
 use url::Url;
 
-use crate::error::CaldavResult;
+use crate::error::{CaldavError, CaldavResult};
 use crate::format;
 use crate::util::find_elements;
 
@@ -100,5 +101,59 @@ impl Calendar {
             .collect();
 
         Ok(events)
+    }
+
+    pub async fn create_event(
+        &self,
+        client: &reqwest::Client,
+        name: &str,
+        start: chrono::DateTime<chrono::Utc>,
+        end: chrono::DateTime<chrono::Utc>,
+    ) -> CaldavResult<Event> {
+        let id = ksuid::Ksuid::generate().to_base62();
+
+        let event = icalendar::Event::new()
+            .uid(&id)
+            .summary(name)
+            .starts(start)
+            .ends(end)
+            .done();
+
+        let calendar = icalendar::Calendar::new()
+            .timezone("UTC")
+            .push(event)
+            .done();
+
+        tracing::debug!("creating event: {:?}", calendar.to_string());
+
+        // Perform an HTTP PUT request to create a new event
+        let mut url = self.url.clone();
+        url.set_path(&format!("{}/{}.ics", self.path, id));
+
+        let method = Method::PUT;
+
+        let res = client
+            .request(method, url.as_str())
+            .header("Content-Type", "text/calendar")
+            .basic_auth(
+                self.client.credentials.username.clone(),
+                Some(self.client.credentials.password.clone()),
+            )
+            .body(calendar.to_string())
+            // .body(fake_event)
+            .send()
+            .await?;
+
+        let res = match res.status() {
+            reqwest::StatusCode::CREATED => res,
+            _ => {
+                let error = res.text().await?;
+                return Err(CaldavError::ServerResponse(error));
+            }
+        };
+
+        tracing::debug!("response: {:?}", res);
+
+        Ok(Event { ical: calendar })
     }
 }
