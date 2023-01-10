@@ -14,7 +14,7 @@ use std::net::SocketAddr;
 use tracing::info;
 
 mod commands;
-use crate::commands::{CalendarCommands, Commands};
+use crate::commands::{CalendarCommands, Commands, EventCommands};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -67,14 +67,31 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                         println!("calendar {} at {}", calendar.display_name, calendar.path);
                     }
                 }
-                CalendarCommands::ListEvents(list) => {
-                    let client = Client::new();
-                    let mut principal = caldav_state.davclient().get_principal(&client).await?;
-                    let calendar = principal.get_calendar(&client, &list.name).await?;
-                    let events = calendar.get_events(&client, list.start, list.end).await?;
-                    tracing::info!("Found {} events", events.len());
-                    for event in events {
-                        tracing::info!("event: {:?}", event);
+                CalendarCommands::Event(event) => {
+                    let cmd = event.command;
+                    match cmd {
+                        EventCommands::List(list) => {
+                            let client = Client::new();
+                            let mut principal =
+                                caldav_state.davclient().get_principal(&client).await?;
+                            let calendar = principal.get_calendar(&client, &list.name).await?;
+                            let events = calendar.get_events(&client, list.start, list.end).await?;
+                            tracing::info!("Found {} events", events.len());
+                            for event in events {
+                                tracing::info!("event: {:?}", event);
+                            }
+                        }
+                        EventCommands::Create(create) => {
+                            let client = Client::new();
+                            let mut principal =
+                                caldav_state.davclient().get_principal(&client).await?;
+                            let calendar =
+                                principal.get_calendar(&client, &create.calendar).await?;
+                            let event = calendar
+                                .create_event(&client, &create.name, create.start, create.end)
+                                .await?;
+                            tracing::info!("Created event: {:?}", event);
+                        }
                     }
                 }
                 CalendarCommands::Availability(avail) => {

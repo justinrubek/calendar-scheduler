@@ -129,7 +129,7 @@ pub fn get_event_matrix(
     let range_tz_start = Tz::UTC.from_utc_datetime(&start.naive_utc());
     let range_tz_end = Tz::UTC.from_utc_datetime(&end.naive_utc());
 
-    // TODO: If there is an RRULE, then we need to generate a list of all the
+    // If there is an RRULE, then we need to generate a list of all the
     // times that the event occurs. If there is no RRULE, then we can just
     // use the start and end times.
     let rrule_str = match event.property_value("RRULE") {
