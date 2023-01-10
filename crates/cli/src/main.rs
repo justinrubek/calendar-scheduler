@@ -3,7 +3,7 @@ use axum::{
     Router,
 };
 use caldav_utils::{
-    availability::get_availability,
+    availability::{calendar_availability, get_availability},
     caldav::client::{DavClient, DavCredentials},
 };
 use clap::Parser;
@@ -76,6 +76,23 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     for event in events {
                         tracing::info!("event: {:?}", event);
                     }
+                }
+                CalendarCommands::Availability(avail) => {
+                    let client = Client::new();
+                    let mut principal = caldav_state.davclient().get_principal(&client).await?;
+                    let calendar = principal.get_calendar(&client, &avail.name).await?;
+                    let events = calendar.get_events(&client, avail.start, avail.end).await?;
+                    let granularity = chrono::Duration::minutes(avail.granularity);
+                    tracing::info!("Found {} events", events.len());
+                    let availability = calendar_availability(
+                        &client,
+                        &calendar,
+                        avail.start,
+                        avail.end,
+                        granularity,
+                    )
+                    .await?;
+                    tracing::info!("availability: {:?}", availability);
                 }
             }
         }

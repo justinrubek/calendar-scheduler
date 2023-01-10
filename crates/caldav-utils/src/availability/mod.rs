@@ -176,6 +176,27 @@ pub fn get_event_matrix(
     matrix
 }
 
+pub async fn calendar_availability(
+    client: &reqwest::Client,
+    calendar: &Calendar,
+    start: chrono::DateTime<chrono::Utc>,
+    end: chrono::DateTime<chrono::Utc>,
+    granularity: chrono::Duration,
+) -> CaldavResult<Vec<bool>> {
+    let duration = end - start;
+    let num_slots = duration.num_minutes() / granularity.num_minutes();
+    let all_false = vec![false; num_slots as usize];
+
+    Ok(calendar
+        .get_events(client, start, end)
+        .await?
+        .iter()
+        .map(|event| get_event_matrix(start, end, granularity, event, calendar.timezone.clone()))
+        .fold(all_false, |acc: Vec<bool>, x| {
+            acc.iter().zip(x.iter()).map(|(a, b)| *a || *b).collect()
+        }))
+}
+
 pub async fn get_availability(
     client: &reqwest::Client,
     availability: &Calendar,
@@ -192,21 +213,21 @@ pub async fn get_availability(
     info!("found {} events", events.len());
     tracing::debug!("events: {:#?}", events);
 
-    // TODO: Support multiple events. For now, assume only the first event is relevant.
-    // If there are no events, then the entire time range is unavailable.
-    // Do not return an error, just return matrix of false.
-    let event = events.first();
-    let matrix = match event {
-        Some(event) => get_event_matrix(
-            start,
-            end,
-            granularity,
-            event,
-            availability.timezone.clone(),
-        ),
-        // If there are no events, then there is no availability.
-        None => vec![false; num_slots as usize],
-    };
+    let all_false = vec![false; num_slots as usize];
+    let matrix = events
+        .iter()
+        .map(|event| {
+            get_event_matrix(
+                start,
+                end,
+                granularity,
+                event,
+                availability.timezone.clone(),
+            )
+        })
+        .fold(all_false, |acc, x| {
+            acc.iter().zip(x.iter()).map(|(a, b)| *a || *b).collect()
+        });
 
     Ok(AvailabilityResponse {
         start,
