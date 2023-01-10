@@ -28,6 +28,8 @@ pub(crate) enum CalendarCommands {
     List,
     /// list events in a calendar between two datetimes
     ListEvents(ListEventsCommand),
+    /// get the availability of a calendar between two datetimes
+    Availability(AvailabilityCommand),
 }
 
 #[derive(clap::Args, Debug)]
@@ -56,4 +58,19 @@ pub(crate) struct Server {
 pub(crate) enum ServerCommands {
     /// start the scheduling http server
     Start,
+}
+
+#[derive(clap::Args, Debug)]
+pub(crate) struct AvailabilityCommand {
+    /// the name of the calendar
+    pub name: String,
+    /// the start of the time range
+    pub start: chrono::DateTime<chrono::Utc>,
+    /// the end of the time range
+    pub end: chrono::DateTime<chrono::Utc>,
+    /// the amount of time to subdivide the availability into.
+    /// e.g. if this is 30 minutes, then the availability matrix will contain
+    /// a slot for every 30 minutes between start and end.
+    #[clap(long, default_value = "30")]
+    pub granularity: i64,
 }
