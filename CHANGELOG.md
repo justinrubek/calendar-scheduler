@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## [0.5.0](https://github.com/justinrubek/calendar-scheduler/compare/0.4.0..0.5.0) - 2023-01-10
+#### Features
+- api request to create booking - ([10a3231](https://github.com/justinrubek/calendar-scheduler/commit/10a32318bb7c82136728cf5b7f9d1de01e33d768)) - [@justinrubek](https://github.com/justinrubek)
+- support getting availability ranges that are shorter than the availability events - ([93499c2](https://github.com/justinrubek/calendar-scheduler/commit/93499c20104ba652ad5a17b6bce602a0bab9d3ea)) - [@justinrubek](https://github.com/justinrubek)
+- create events - ([b7354d8](https://github.com/justinrubek/calendar-scheduler/commit/b7354d8432b34213886463a2e1a09947f679496b)) - [@justinrubek](https://github.com/justinrubek)
+- cli can query availability for a calendar - ([ddc1c4f](https://github.com/justinrubek/calendar-scheduler/commit/ddc1c4f3e0b6e44dac9cae402f8054cad1345e9a)) - [@justinrubek](https://github.com/justinrubek)
+
+- - -
+
 ## [0.4.0](https://github.com/justinrubek/calendar-scheduler/compare/0.3.0..0.4.0) - 2023-01-07
 #### Documentation
 - comment clap commands - ([0860ae3](https://github.com/justinrubek/calendar-scheduler/commit/0860ae3e47b678dbc65e751b56d454531067899b)) - [@justinrubek](https://github.com/justinrubek)
