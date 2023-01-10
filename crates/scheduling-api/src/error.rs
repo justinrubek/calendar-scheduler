@@ -10,17 +10,14 @@ pub enum SchedulerError {
     Caldav(#[from] caldav_utils::error::CaldavError),
     #[error(transparent)]
     Reqwest(#[from] reqwest::Error),
+    #[error("Requested time not available: {0}")]
+    TimeNotAvailable(chrono::DateTime<chrono::Utc>),
 }
 
 pub type SchedulerResult<T> = Result<T, SchedulerError>;
 
 impl IntoResponse for SchedulerError {
     fn into_response(self) -> Response {
-        let body = match self {
-            SchedulerError::Caldav(e) => e.to_string(),
-            SchedulerError::Reqwest(err) => err.to_string(),
-        };
-
-        (StatusCode::INTERNAL_SERVER_ERROR, body).into_response()
+        (StatusCode::INTERNAL_SERVER_ERROR, self.to_string()).into_response()
     }
 }

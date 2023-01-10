@@ -9,7 +9,9 @@ use caldav_utils::{
 use clap::Parser;
 use commands::ServerCommands;
 use reqwest::Client;
-use scheduling_api::{get_calendars, get_now, request_availability, state::CaldavAvailability};
+use scheduling_api::{
+    get_calendars, get_now, request_availability, request_booking, state::CaldavAvailability,
+};
 use std::net::SocketAddr;
 use tracing::info;
 
@@ -128,6 +130,7 @@ async fn scheduler_api(caldav_state: CaldavAvailability) -> Result<(), Box<dyn s
         .route("/now", get(get_now))
         // POST since JS doesn't support body in GET
         .route("/availability", post(request_availability))
+        .route("/book", post(request_booking))
         .with_state(caldav_state);
 
     let addr = SocketAddr::from(([0, 0, 0, 0], port));
