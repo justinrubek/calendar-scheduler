@@ -35,7 +35,9 @@ pub struct AvailabilityResponse {
 
 // generates a matrix for an event with no RRULE
 pub fn generate_matrix_no_rrule(
+    // the start of the range that we're generating the matrix for
     range_start: chrono::DateTime<chrono::Utc>,
+    // the start of the availability event - times in this range are considered available
     event_start: chrono::DateTime<chrono::Utc>,
     event_end: chrono::DateTime<chrono::Utc>,
     num_slots: i64,
@@ -43,7 +45,7 @@ pub fn generate_matrix_no_rrule(
 ) -> Vec<bool> {
     let mut matrix = vec![false; num_slots as usize];
 
-    println!(
+    tracing::debug!(
         r#"generating matrix for event with no RRULE,
             range_start: {range_start}, 
             event_start: {event_start},
@@ -52,18 +54,30 @@ pub fn generate_matrix_no_rrule(
             granularity: {granularity}"#,
     );
 
-    // modify the matrix to reflect the events
-    let start_index = (event_start - range_start).num_minutes() / granularity.num_minutes();
-    // the end index should be either the end of the event or the end of the range, whichever is earlier
-    let end_index = std::cmp::min(
-        (event_end - range_start).num_minutes() / granularity.num_minutes(),
-        num_slots,
-    );
-    println!("start_index: {start_index}, end_index: {end_index}",);
-    matrix[start_index as usize + 1..end_index as usize + 1]
+    let start_index = {
+        let diff = event_start - range_start;
+        let index = diff.num_minutes() / granularity.num_minutes();
+        if index < 0 {
+            0
+        } else {
+            index + 1
+        }
+    } as usize;
+    let end_index = {
+        let diff = event_end - range_start;
+        let index = diff.num_minutes() / granularity.num_minutes();
+        if index > num_slots {
+            num_slots
+        } else {
+            index + 1
+        }
+    } as usize;
+    tracing::debug!("start_index: {start_index}, end_index: {end_index}",);
+
+    matrix[start_index..end_index]
         .iter_mut()
         .for_each(|x| *x = true);
-
+    tracing::debug!("matrix: {:#?}", matrix);
     matrix
 }
 
@@ -74,22 +88,26 @@ pub fn get_event_matrix(
     event: &Event,
     timezone: Option<String>,
 ) -> Vec<bool> {
+    if end < start {
+        tracing::warn!("end is before start");
+        return vec![];
+    }
+
     let num_slots = (end - start).num_minutes() / granularity.num_minutes();
 
-    info!("generating matrix for event: {:#?}", event);
+    tracing::debug!("generating matrix for event: {:#?}", event);
     // determine the time of the event compared to the requested time range.
     // First, we need to get the properties from the inner icalendar::Event.
     let comps = &event.ical.components;
     // Assume there is only one component.
     let comp = comps.first().unwrap();
     let event = comp.as_event().unwrap();
-    info!("component: {:#?}", comp);
 
     // Get the start and end times of the event.
     let dtstart_str = event.property_value("DTSTART").unwrap();
     let dtend_str = event.property_value("DTEND").unwrap();
-    info!("dtstart_str: {:#?}", dtstart_str);
-    info!("dtend_str: {:#?}", dtend_str);
+    tracing::debug!("dtstart_str: {:#?}", dtstart_str);
+    tracing::debug!("dtend_str: {:#?}", dtend_str);
 
     let tz = match timezone {
         Some(tz) => {
@@ -120,10 +138,10 @@ pub fn get_event_matrix(
     let dtend = chrono::Utc
         .from_local_datetime(&dtend_local.naive_utc())
         .unwrap();
-    info!("dtstart_local: {:#?}", dtstart_local);
-    info!("dtend_local: {:#?}", dtend_local);
-    info!("dtstart: {:#?}", dtstart);
-    info!("dtend: {:#?}", dtend);
+    tracing::debug!("dtstart_local: {:#?}", dtstart_local);
+    tracing::debug!("dtend_local: {:#?}", dtend_local);
+    tracing::debug!("dtstart: {:#?}", dtstart);
+    tracing::debug!("dtend: {:#?}", dtend);
     let tz_start = Tz::UTC.from_utc_datetime(&dtstart.naive_utc());
 
     let range_tz_start = Tz::UTC.from_utc_datetime(&start.naive_utc());
@@ -137,14 +155,14 @@ pub fn get_event_matrix(
         Some(rule) => rule,
     };
 
-    info!("rrule_str: {:#?}", rrule_str);
+    tracing::debug!("rrule_str: {:#?}", rrule_str);
 
     // Determine the recurrence rule of the event.
     let rrule: RRule<Unvalidated> = rrule_str.parse().unwrap();
     let rrule = rrule.build(tz_start).unwrap();
-    info!("rrule: {:#?}", rrule);
+    tracing::debug!("rrule: {:#?}", rrule);
     let (detected_events, _) = rrule.after(range_tz_start).before(range_tz_end).all(100);
-    info!("detected_events: {:#?}", detected_events);
+    tracing::debug!("detected_events: {:#?}", detected_events);
 
     // for each event, determine the time range it covers.
     let event_duration = dtend - dtstart;
@@ -156,7 +174,7 @@ pub fn get_event_matrix(
             (start, end)
         })
         .collect::<Vec<(chrono::DateTime<chrono::Utc>, chrono::DateTime<chrono::Utc>)>>();
-    info!("event_ranges: {:#?}", event_ranges);
+    tracing::debug!("event_ranges: {:#?}", event_ranges);
 
     let mut matrix = vec![false; num_slots as usize];
     // open slots in the matrix according to the event_ranges
@@ -166,8 +184,8 @@ pub fn get_event_matrix(
     for (begin, end) in event_ranges {
         let begin_index = ((begin - start).num_minutes() / granularity.num_minutes()) as usize;
         let end_index = ((end - start).num_minutes() / granularity.num_minutes()) as usize;
-        info!("begin_index: {:#?}", begin_index);
-        info!("end_index: {:#?}", end_index);
+        tracing::debug!("begin_index: {:#?}", begin_index);
+        tracing::debug!("end_index: {:#?}", end_index);
         matrix[begin_index + 1..end_index + 1]
             .iter_mut()
             .for_each(|x| *x = true);
