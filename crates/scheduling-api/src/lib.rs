@@ -60,6 +60,51 @@ pub async fn request_availability(
     Ok(Json(avail))
 }
 
+#[derive(Debug, serde::Deserialize)]
+pub struct BookingRequest {
+    pub start: chrono::DateTime<chrono::Utc>,
+    pub end: chrono::DateTime<chrono::Utc>,
+    pub name: String,
+}
+/// Attempt to reserve a time slot in the booked calendar
+/// This will fail if the slot is not available
+pub async fn request_booking(
+    State(caldav_state): State<CaldavAvailability>,
+    body: Json<BookingRequest>,
+) -> SchedulerResult<StatusCode> {
+    let client = reqwest::Client::new();
+    let (availability_calendar, booked_calendar) = get_calendars(&client, caldav_state).await?;
+
+    let granularity = chrono::Duration::minutes(30);
+
+    // First, retrieve the availability and check if the slot is available
+    let avail = get_availability(
+        &client,
+        &availability_calendar,
+        &booked_calendar,
+        body.start,
+        body.end,
+        granularity,
+    )
+    .await?;
+
+    /* TODO:
+     * Check if the requested time is available
+     * T
+     */
+    let is_available = avail.matrix.iter().all(|it| *it);
+    if !is_available {
+        return Err(SchedulerError::TimeNotAvailable(body.start));
+    }
+
+    // Create an event in the booking calendar
+    booked_calendar
+        .create_event(&client, &body.name, body.start, body.end)
+        .await?;
+
+    Ok(StatusCode::OK)
+}
+
 /// gets the current time
 pub async fn get_now() -> Result<Json<chrono::DateTime<chrono::Utc>>, StatusCode> {
     Ok(Json(chrono::Utc::now()))
