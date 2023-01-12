@@ -1,3 +1,4 @@
+use anyhow::anyhow;
 use chrono::TimeZone;
 use icalendar::Component;
 use rrule::{RRule, Tz, Unvalidated};
@@ -5,7 +6,7 @@ use serde_with::DurationSeconds;
 use tracing::info;
 
 use crate::caldav::{calendar::Calendar, event::Event};
-use crate::error::CaldavResult;
+use crate::error::{CaldavError, CaldavResult};
 
 #[serde_with::serde_as]
 #[derive(Clone, Debug, serde::Deserialize, serde::Serialize)]
@@ -33,6 +34,15 @@ pub struct AvailabilityResponse {
     pub matrix: Vec<bool>,
 }
 
+pub fn get_num_slots(
+    start: chrono::DateTime<chrono::Utc>,
+    end: chrono::DateTime<chrono::Utc>,
+    granularity: chrono::Duration,
+) -> usize {
+    let duration = end - start;
+    (duration.num_minutes() / granularity.num_minutes()) as usize
+}
+
 // generates a matrix for an event with no RRULE
 pub fn generate_matrix_no_rrule(
     // the start of the range that we're generating the matrix for
@@ -42,7 +52,7 @@ pub fn generate_matrix_no_rrule(
     event_end: chrono::DateTime<chrono::Utc>,
     num_slots: i64,
     granularity: chrono::Duration,
-) -> Vec<bool> {
+) -> CaldavResult<Vec<bool>> {
     let mut matrix = vec![false; num_slots as usize];
 
     tracing::debug!(
@@ -55,21 +65,31 @@ pub fn generate_matrix_no_rrule(
     );
 
     let start_index = {
-        let diff = event_start - range_start;
-        let index = diff.num_minutes() / granularity.num_minutes();
-        if index < 0 {
+        if event_start == range_start {
             0
         } else {
-            index + 1
+            let diff = event_start - range_start;
+            let index = diff.num_minutes() / granularity.num_minutes();
+            if index < 0 {
+                0
+            } else if index >= num_slots {
+                return Ok(matrix);
+            } else {
+                index + 1
+            }
         }
     } as usize;
     let end_index = {
-        let diff = event_end - range_start;
-        let index = diff.num_minutes() / granularity.num_minutes();
-        if index > num_slots {
-            num_slots
+        if event_end == range_start {
+            0
         } else {
-            index + 1
+            let diff = event_end - range_start;
+            let index = diff.num_minutes() / granularity.num_minutes();
+            if index + 1 > num_slots {
+                num_slots
+            } else {
+                index + 1
+            }
         }
     } as usize;
     tracing::debug!("start_index: {start_index}, end_index: {end_index}",);
@@ -78,7 +98,26 @@ pub fn generate_matrix_no_rrule(
         .iter_mut()
         .for_each(|x| *x = true);
     tracing::debug!("matrix: {:#?}", matrix);
-    matrix
+    Ok(matrix)
+}
+
+fn get_rruleset(event: &icalendar::Event, tz: &Tz) -> CaldavResult<Option<rrule::RRuleSet>> {
+    let rrule_str = match event.property_value("RRULE") {
+        None => return Ok(None),
+        Some(rule) => rule,
+    };
+
+    let dtstart = {
+        let as_str = event
+            .property_value("DTSTART")
+            .ok_or_else(|| CaldavError::Anyhow(anyhow!("DTSTART not found")))?;
+        let dtstart_local = tz.datetime_from_str(as_str, "%Y%m%dT%H%M%S").unwrap();
+        Tz::UTC.from_utc_datetime(&dtstart_local.naive_utc())
+    };
+
+    let rrule: RRule<Unvalidated> = rrule_str.parse()?;
+    let rrule = rrule.build(dtstart)?;
+    Ok(Some(rrule))
 }
 
 pub fn get_event_matrix(
@@ -87,10 +126,10 @@ pub fn get_event_matrix(
     granularity: chrono::Duration,
     event: &Event,
     timezone: Option<String>,
-) -> Vec<bool> {
+) -> CaldavResult<Vec<bool>> {
     if end < start {
         tracing::warn!("end is before start");
-        return vec![];
+        return Ok(vec![]);
     }
 
     let num_slots = (end - start).num_minutes() / granularity.num_minutes();
@@ -129,69 +168,25 @@ pub fn get_event_matrix(
         "%Y%m%dT%H%M%S"
     };
 
-    let dtstart_local = tz.datetime_from_str(dtstart_str, format).unwrap();
-    let dtend_local = tz.datetime_from_str(dtend_str, format).unwrap();
-    // Convert the start and end times to UTC.
-    let dtstart = chrono::Utc
-        .from_local_datetime(&dtstart_local.naive_utc())
-        .unwrap();
-    let dtend = chrono::Utc
-        .from_local_datetime(&dtend_local.naive_utc())
-        .unwrap();
-    tracing::debug!("dtstart_local: {:#?}", dtstart_local);
-    tracing::debug!("dtend_local: {:#?}", dtend_local);
-    tracing::debug!("dtstart: {:#?}", dtstart);
-    tracing::debug!("dtend: {:#?}", dtend);
-    let tz_start = Tz::UTC.from_utc_datetime(&dtstart.naive_utc());
-
-    let range_tz_start = Tz::UTC.from_utc_datetime(&start.naive_utc());
-    let range_tz_end = Tz::UTC.from_utc_datetime(&end.naive_utc());
-
-    // If there is an RRULE, then we need to generate a list of all the
-    // times that the event occurs. If there is no RRULE, then we can just
-    // use the start and end times.
-    let rrule_str = match event.property_value("RRULE") {
-        None => return generate_matrix_no_rrule(start, dtstart, dtend, num_slots, granularity),
-        Some(rule) => rule,
-    };
-
-    tracing::debug!("rrule_str: {:#?}", rrule_str);
-
-    // Determine the recurrence rule of the event.
-    let rrule: RRule<Unvalidated> = rrule_str.parse().unwrap();
-    let rrule = rrule.build(tz_start).unwrap();
-    tracing::debug!("rrule: {:#?}", rrule);
-    let (detected_events, _) = rrule.after(range_tz_start).before(range_tz_end).all(100);
-    tracing::debug!("detected_events: {:#?}", detected_events);
-
-    // for each event, determine the time range it covers.
-    let event_duration = dtend - dtstart;
-    let event_ranges = detected_events
-        .iter()
-        .map(|e| {
-            let start = chrono::Utc.from_local_datetime(&e.naive_utc()).unwrap();
-            let end = start + event_duration;
-            (start, end)
-        })
-        .collect::<Vec<(chrono::DateTime<chrono::Utc>, chrono::DateTime<chrono::Utc>)>>();
-    tracing::debug!("event_ranges: {:#?}", event_ranges);
-
-    let mut matrix = vec![false; num_slots as usize];
-    // open slots in the matrix according to the event_ranges
-    // this should be done by comparing the start of the event to the
-    // start of the availability matrix, finding the index of slots
-    // that occur during the event, and setting the values to `true`
-    for (begin, end) in event_ranges {
-        let begin_index = ((begin - start).num_minutes() / granularity.num_minutes()) as usize;
-        let end_index = ((end - start).num_minutes() / granularity.num_minutes()) as usize;
-        tracing::debug!("begin_index: {:#?}", begin_index);
-        tracing::debug!("end_index: {:#?}", end_index);
-        matrix[begin_index + 1..end_index + 1]
-            .iter_mut()
-            .for_each(|x| *x = true);
+    match event.property_value("RRULE") {
+        Some(_) => generate_matrix_rrule(&event, &tz, start, end, num_slots, granularity),
+        None => {
+            let dtstart_local = tz.datetime_from_str(dtstart_str, format).unwrap();
+            let dtend_local = tz.datetime_from_str(dtend_str, format).unwrap();
+            // Convert the start and end times to UTC.
+            let dtstart = chrono::Utc
+                .from_local_datetime(&dtstart_local.naive_utc())
+                .unwrap();
+            let dtend = chrono::Utc
+                .from_local_datetime(&dtend_local.naive_utc())
+                .unwrap();
+            tracing::debug!("dtstart_local: {:#?}", dtstart_local);
+            tracing::debug!("dtend_local: {:#?}", dtend_local);
+            tracing::debug!("dtstart: {:#?}", dtstart);
+            tracing::debug!("dtend: {:#?}", dtend);
+            generate_matrix_no_rrule(start, dtstart, dtend, num_slots, granularity)
+        }
     }
-
-    matrix
 }
 
 pub async fn calendar_availability(
@@ -201,8 +196,7 @@ pub async fn calendar_availability(
     end: chrono::DateTime<chrono::Utc>,
     granularity: chrono::Duration,
 ) -> CaldavResult<Vec<bool>> {
-    let duration = end - start;
-    let num_slots = duration.num_minutes() / granularity.num_minutes();
+    let num_slots = get_num_slots(start, end, granularity);
     let all_false = vec![false; num_slots as usize];
 
     Ok(calendar
@@ -211,6 +205,7 @@ pub async fn calendar_availability(
         .iter()
         .map(|event| get_event_matrix(start, end, granularity, event, calendar.timezone.clone()))
         .fold(all_false, |acc: Vec<bool>, x| {
+            let x = x.unwrap();
             acc.iter().zip(x.iter()).map(|(a, b)| *a || *b).collect()
         }))
 }
@@ -244,6 +239,7 @@ pub async fn get_availability(
             )
         })
         .fold(all_false, |acc, x| {
+            let x = x.unwrap();
             acc.iter().zip(x.iter()).map(|(a, b)| *a || *b).collect()
         });
 
@@ -253,4 +249,68 @@ pub async fn get_availability(
         granularity,
         matrix,
     })
+}
+
+fn generate_matrix_rrule(
+    // event containing availability
+    event: &icalendar::Event,
+    tz: &Tz,
+    // start of the availability matrix
+    start: chrono::DateTime<chrono::Utc>,
+    // end of the availability matrix
+    end: chrono::DateTime<chrono::Utc>,
+    num_slots: i64,
+    granularity: chrono::Duration,
+) -> CaldavResult<Vec<bool>> {
+    let dtstart = {
+        let dtstart_str = event.property_value("DTSTART").unwrap();
+        let dtstart_local = tz.datetime_from_str(dtstart_str, "%Y%m%dT%H%M%S").unwrap();
+        chrono::Utc
+            .from_local_datetime(&dtstart_local.naive_utc())
+            .unwrap()
+    };
+    let dtend = {
+        let dtend_str = event.property_value("DTEND").unwrap();
+        let dtend_local = tz.datetime_from_str(dtend_str, "%Y%m%dT%H%M%S").unwrap();
+        chrono::Utc
+            .from_local_datetime(&dtend_local.naive_utc())
+            .unwrap()
+    };
+
+    let tz_start = Tz::UTC.from_utc_datetime(&dtstart.naive_utc());
+
+    // Convert the requested time-range to rrule compatible datetimes
+    let range_tz_start = Tz::UTC.from_utc_datetime(&start.naive_utc());
+    let range_tz_end = Tz::UTC.from_utc_datetime(&end.naive_utc());
+
+    let rrule = get_rruleset(event, tz)?.unwrap();
+
+    let (detected_events, _) = rrule.after(range_tz_start).before(range_tz_end).all(100);
+    tracing::debug!("detected_events: {:#?}", detected_events);
+
+    // for each event, determine the time range it covers.
+    let event_duration = dtend - dtstart;
+    let event_ranges = detected_events
+        .iter()
+        .map(|e| {
+            let start = chrono::Utc.from_local_datetime(&e.naive_utc()).unwrap();
+            let end = start + event_duration;
+            (start, end)
+        })
+        .collect::<Vec<(chrono::DateTime<chrono::Utc>, chrono::DateTime<chrono::Utc>)>>();
+    tracing::debug!("event_ranges: {:#?}", event_ranges);
+
+    let mut matrix = vec![false; num_slots as usize];
+
+    // Now that the rrule has been resolved to multiple events, we can treat them
+    // the same as events without an rrule
+    let final_matrix = event_ranges
+        .iter()
+        .map(|(begin, end)| generate_matrix_no_rrule(start, *begin, *end, num_slots, granularity))
+        .fold(matrix, |acc, x| {
+            let x = x.unwrap();
+            acc.iter().zip(x.iter()).map(|(a, b)| *a || *b).collect()
+        });
+
+    Ok(final_matrix)
 }
