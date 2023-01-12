@@ -2,6 +2,16 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## [0.6.0](https://github.com/justinrubek/calendar-scheduler/compare/0.5.0..0.6.0) - 2023-01-12
+#### Documentation
+- add readme - ([020712e](https://github.com/justinrubek/calendar-scheduler/commit/020712e7bf1bdbf8e0af2d91ac71e3018de2f0c3)) - [@justinrubek](https://github.com/justinrubek)
+#### Refactoring
+- restructure for testing - no rrule - ([c5707db](https://github.com/justinrubek/calendar-scheduler/commit/c5707db154d407a5c38688f814149a5cf6a3450b)) - [@justinrubek](https://github.com/justinrubek)
+#### Tests
+- tests with rrules - ([f10fef5](https://github.com/justinrubek/calendar-scheduler/commit/f10fef5aeb383363bba003a23abe026900fe899f)) - [@justinrubek](https://github.com/justinrubek)
+
+- - -
+
 ## [0.5.0](https://github.com/justinrubek/calendar-scheduler/compare/0.4.0..0.5.0) - 2023-01-10
 #### Features
 - api request to create booking - ([10a3231](https://github.com/justinrubek/calendar-scheduler/commit/10a32318bb7c82136728cf5b7f9d1de01e33d768)) - [@justinrubek](https://github.com/justinrubek)
