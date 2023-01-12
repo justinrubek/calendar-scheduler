@@ -8,6 +8,7 @@ homepage = "https://github.com/justinrubek/calendar-scheduler"
 repository = "https://github.com/justinrubek/calendar-scheduler"
 
 [dependencies]
+anyhow = "1"
 chrono = "0.4.23"
 chrono-tz = "0.8.1"
 http = "0.2.8"
