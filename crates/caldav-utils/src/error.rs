@@ -4,6 +4,8 @@ use thiserror::Error;
 pub enum CaldavError {
     #[error(transparent)]
     Anyhow(#[from] anyhow::Error),
+    #[error(transparent)]
+    ChronoParse(#[from] chrono::ParseError),
     #[error("Calendar not found: {calendar_name}")]
     CalendarNotFound { calendar_name: String },
     #[error(transparent)]

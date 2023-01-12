@@ -1,7 +1,9 @@
 use icalendar::{Component, EventLike, Property};
 
 use crate::{
-    availability::{generate_matrix_no_rrule, get_event_matrix, get_num_slots},
+    availability::{
+        generate_matrix_no_rrule, generate_matrix_rrule, get_event_matrix, get_num_slots,
+    },
     caldav::event::Event,
     format::DATETIME,
 };
@@ -168,14 +170,14 @@ async fn tests_no_rrule() -> Result<(), Box<dyn std::error::Error>> {
     struct AvailabilityRange {
         start: chrono::DateTime<chrono::Utc>,
         end: chrono::DateTime<chrono::Utc>,
-    };
+    }
 
     // Attempts to view the availability from the given start time to the given end time.
     struct TestCase {
         start: chrono::DateTime<chrono::Utc>,
         end: chrono::DateTime<chrono::Utc>,
         expected: Vec<bool>,
-    };
+    }
 
     fn print_test_details(test_case: &TestCase, matrix: &Vec<bool>, num_slots: usize) {
         println!(
@@ -281,6 +283,155 @@ async fn tests_no_rrule() -> Result<(), Box<dyn std::error::Error>> {
                     test_case.start,
                     event.start,
                     event.end,
+                    num_slots as i64,
+                    chrono::Duration::minutes(30),
+                )
+            })
+            .fold(vec![false; num_slots], |acc, matrix| {
+                let matrix = matrix.unwrap();
+                acc.iter()
+                    .zip(matrix.iter())
+                    .map(|(a, b)| *a || *b)
+                    .collect()
+            });
+
+        print_test_details(&test_case, &matrix, num_slots);
+        assert_eq!(matrix, test_case.expected);
+    }
+
+    Ok(())
+}
+
+#[tokio::test]
+async fn tests_rrule() -> Result<(), Box<dyn std::error::Error>> {
+    struct AvailabilityRange {
+        start: chrono::DateTime<chrono::Utc>,
+        end: chrono::DateTime<chrono::Utc>,
+        rrule: String,
+    }
+
+    struct TestCase {
+        start: chrono::DateTime<chrono::Utc>,
+        end: chrono::DateTime<chrono::Utc>,
+        expected: Vec<bool>,
+    }
+
+    fn print_test_details(test_case: &TestCase, matrix: &Vec<bool>, num_slots: usize) {
+        println!(
+            r#"
+            Test case:
+                start: {}
+                end: {}
+                num_slots: {}
+                expected: {:?}
+                actual: {:?}
+            "#,
+            test_case.start, test_case.end, num_slots, test_case.expected, matrix,
+        );
+    }
+
+    let availability_ranges = vec![AvailabilityRange {
+        start: chrono::DateTime::parse_from_rfc3339("2023-01-12T14:00:00.000000000Z")
+            .unwrap()
+            .into(),
+        end: chrono::DateTime::parse_from_rfc3339("2023-01-12T16:30:00.000000000Z")
+            .unwrap()
+            .into(),
+        rrule: "FREQ=DAILY;COUNT=3".to_string(),
+    }];
+
+    let test_cases = vec![
+        TestCase {
+            start: chrono::DateTime::parse_from_rfc3339("2023-01-12T14:00:00.000000000Z")
+                .unwrap()
+                .into(),
+            end: chrono::DateTime::parse_from_rfc3339("2023-01-12T14:30:00.000000000Z")
+                .unwrap()
+                .into(),
+            expected: vec![true],
+        },
+        TestCase {
+            start: chrono::DateTime::parse_from_rfc3339("2023-01-12T14:30:00.000000000Z")
+                .unwrap()
+                .into(),
+            end: chrono::DateTime::parse_from_rfc3339("2023-01-12T15:00:00.000000000Z")
+                .unwrap()
+                .into(),
+            expected: vec![true],
+        },
+        TestCase {
+            start: chrono::DateTime::parse_from_rfc3339("2023-01-12T16:00:00.000000000Z")
+                .unwrap()
+                .into(),
+            end: chrono::DateTime::parse_from_rfc3339("2023-01-12T16:30:00.000000000Z")
+                .unwrap()
+                .into(),
+            expected: vec![true],
+        },
+        TestCase {
+            start: chrono::DateTime::parse_from_rfc3339("2023-01-12T16:30:00.000000000Z")
+                .unwrap()
+                .into(),
+            end: chrono::DateTime::parse_from_rfc3339("2023-01-12T17:00:00.000000000Z")
+                .unwrap()
+                .into(),
+            expected: vec![false],
+        },
+        TestCase {
+            start: chrono::DateTime::parse_from_rfc3339("2023-01-12T17:00:00.000000000Z")
+                .unwrap()
+                .into(),
+            end: chrono::DateTime::parse_from_rfc3339("2023-01-12T17:30:00.000000000Z")
+                .unwrap()
+                .into(),
+            expected: vec![false],
+        },
+        // Second day
+        TestCase {
+            start: chrono::DateTime::parse_from_rfc3339("2023-01-13T14:00:00.000000000Z")
+                .unwrap()
+                .into(),
+            end: chrono::DateTime::parse_from_rfc3339("2023-01-13T14:30:00.000000000Z")
+                .unwrap()
+                .into(),
+            expected: vec![true],
+        },
+        TestCase {
+            start: chrono::DateTime::parse_from_rfc3339("2023-01-13T19:30:00.000000000Z")
+                .unwrap()
+                .into(),
+            end: chrono::DateTime::parse_from_rfc3339("2023-01-13T20:00:00.000000000Z")
+                .unwrap()
+                .into(),
+            expected: vec![false],
+        },
+    ];
+
+    for (i, test_case) in test_cases.iter().enumerate() {
+        println!("Test case: {}", i);
+        let num_slots = get_num_slots(
+            test_case.start,
+            test_case.end,
+            chrono::Duration::minutes(30),
+        );
+        println!("num_slots: {}", num_slots);
+        // Iterate over availability, and combine the results into a single matrix of the same size.
+        let matrix = availability_ranges
+            .iter()
+            .map(|availability| {
+                // generate_matrix_rrule needs an icalendar::Event, so we create one here.
+                let event = icalendar::Event::new()
+                    .summary("test")
+                    .starts(availability.start)
+                    .ends(availability.end)
+                    .append_property(icalendar::Property::new("RRULE", &availability.rrule))
+                    .done();
+
+                generate_matrix_rrule(
+                    &event,
+                    &rrule::Tz::UTC,
+                    test_case.start,
+                    test_case.end,
                     num_slots as i64,
                     chrono::Duration::minutes(30),
                 )
