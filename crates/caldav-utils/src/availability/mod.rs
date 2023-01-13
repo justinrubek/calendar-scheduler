@@ -228,7 +228,7 @@ pub async fn calendar_availability(
 pub async fn get_availability(
     client: &reqwest::Client,
     availability: &Calendar,
-    _booked: &Calendar,
+    booked: &Calendar,
     start: chrono::DateTime<chrono::Utc>,
     end: chrono::DateTime<chrono::Utc>,
     granularity: chrono::Duration,
@@ -258,11 +258,25 @@ pub async fn get_availability(
             acc.iter().zip(x.iter()).map(|(a, b)| *a || *b).collect()
         });
 
+    // Now, we need to do the same thing for the booked calendar, but we need to
+    // invert the matrix modifications so that the booked times are marked as unavailable.
+    let booked_events = booked.get_events(client, start, end).await?;
+    info!("found {} booked events", booked_events.len());
+    tracing::debug!("booked_events: {:#?}", booked_events);
+
+    let booked_matrix = booked_events
+        .iter()
+        .map(|event| get_event_matrix(start, end, granularity, event, booked.timezone.clone()))
+        .fold(matrix, |acc, x| {
+            let x = x.unwrap();
+            acc.iter().zip(x.iter()).map(|(a, b)| *a && !b).collect()
+        });
+
     Ok(AvailabilityResponse {
         start,
         end,
         granularity,
-        matrix,
+        matrix: booked_matrix,
     })
 }
 
