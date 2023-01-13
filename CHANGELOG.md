@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## [0.6.1](https://github.com/justinrubek/calendar-scheduler/compare/0.6.0..0.6.1) - 2023-01-13
+#### Refactoring
+- **(api)** return http 400 when reservation fails - ([80ffaa7](https://github.com/justinrubek/calendar-scheduler/commit/80ffaa758c87f0dc945c4a8512c50a60ff9b14e9)) - [@justinrubek](https://github.com/justinrubek)
+
+- - -
+
 ## [0.6.0](https://github.com/justinrubek/calendar-scheduler/compare/0.5.0..0.6.0) - 2023-01-12
 #### Documentation
 - add readme - ([020712e](https://github.com/justinrubek/calendar-scheduler/commit/020712e7bf1bdbf8e0af2d91ac71e3018de2f0c3)) - [@justinrubek](https://github.com/justinrubek)
