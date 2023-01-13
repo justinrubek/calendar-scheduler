@@ -18,6 +18,13 @@ pub type SchedulerResult<T> = Result<T, SchedulerError>;
 
 impl IntoResponse for SchedulerError {
     fn into_response(self) -> Response {
-        (StatusCode::INTERNAL_SERVER_ERROR, self.to_string()).into_response()
+        match self {
+            SchedulerError::TimeNotAvailable(msg) => (
+                StatusCode::BAD_REQUEST,
+                format!("Requested time not available: {msg}"),
+            )
+                .into_response(),
+            msg => (StatusCode::INTERNAL_SERVER_ERROR, msg.to_string()).into_response(),
+        }
     }
 }
