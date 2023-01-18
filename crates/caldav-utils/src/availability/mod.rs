@@ -154,7 +154,6 @@ pub fn get_event_matrix(
     // First, we need to get the properties from the inner icalendar::Event.
     let comps = &event.ical.components;
     // Assume there is only one component.
-    println!("comps: {:#?}", comps);
     let event_comp = comps.iter().find(|c| match c {
         icalendar::CalendarComponent::Event(_) => true,
         _ => false,
@@ -165,7 +164,6 @@ pub fn get_event_matrix(
         )));
     }
     let event = event_comp.unwrap().as_event().unwrap();
-    println!("event: {:#?}", event);
 
     // Get the start and end times of the event.
     let dtstart_str = event.property_value("DTSTART").unwrap();
