@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## [0.6.3](https://github.com/justinrubek/calendar-scheduler/compare/0.6.2..0.6.3) - 2023-01-18
+#### Bug Fixes
+- event is no longer assumed to be the first component in the calendar - ([7d17347](https://github.com/justinrubek/calendar-scheduler/commit/7d173473fd109cfa0b6cdd6f10bef2c7170637b4)) - [@justinrubek](https://github.com/justinrubek)
+
+- - -
+
 ## [0.6.2](https://github.com/justinrubek/calendar-scheduler/compare/0.6.1..0.6.2) - 2023-01-13
 #### Features
 - **(api)** reservations are now blocked by existing events in booking calendar - ([fe1766c](https://github.com/justinrubek/calendar-scheduler/commit/fe1766cf8151f0a6276ecea3ccc0f2c2da071302)) - [@justinrubek](https://github.com/justinrubek)
