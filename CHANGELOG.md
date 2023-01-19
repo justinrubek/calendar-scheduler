@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## [0.6.4](https://github.com/justinrubek/calendar-scheduler/compare/0.6.3..0.6.4) - 2023-01-19
+#### Features
+- accept description on events - ([922aa82](https://github.com/justinrubek/calendar-scheduler/commit/922aa82484b3bc6918a3bdc802df1326dcf58bd6)) - [@justinrubek](https://github.com/justinrubek)
+#### Miscellaneous Chores
+- remove printlns - ([e0af659](https://github.com/justinrubek/calendar-scheduler/commit/e0af659e9e327979352c843e58c84a564e983f82)) - [@justinrubek](https://github.com/justinrubek)
+
+- - -
+
 ## [0.6.3](https://github.com/justinrubek/calendar-scheduler/compare/0.6.2..0.6.3) - 2023-01-18
 #### Bug Fixes
 - event is no longer assumed to be the first component in the calendar - ([7d17347](https://github.com/justinrubek/calendar-scheduler/commit/7d173473fd109cfa0b6cdd6f10bef2c7170637b4)) - [@justinrubek](https://github.com/justinrubek)
