@@ -90,7 +90,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                             let calendar =
                                 principal.get_calendar(&client, &create.calendar).await?;
                             let event = calendar
-                                .create_event(&client, &create.name, create.start, create.end)
+                                .create_event(
+                                    &client,
+                                    create.start,
+                                    create.end,
+                                    &create.name,
+                                    &create.description,
+                                )
                                 .await?;
                             tracing::info!("Created event: {:?}", event);
                         }

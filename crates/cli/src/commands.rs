@@ -68,6 +68,9 @@ pub(crate) struct CreateEventCommand {
     pub calendar: String,
     /// the name of the event
     pub name: String,
+    /// description of the event
+    #[clap(default_value = "")]
+    pub description: String,
     /// the start of the time range
     pub start: chrono::DateTime<chrono::Utc>,
     /// the end of the time range

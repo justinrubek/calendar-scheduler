@@ -154,10 +154,9 @@ pub fn get_event_matrix(
     // First, we need to get the properties from the inner icalendar::Event.
     let comps = &event.ical.components;
     // Assume there is only one component.
-    let event_comp = comps.iter().find(|c| match c {
-        icalendar::CalendarComponent::Event(_) => true,
-        _ => false,
-    });
+    let event_comp = comps
+        .iter()
+        .find(|c| matches!(c, icalendar::CalendarComponent::Event(_)));
     if event_comp.is_none() {
         return Err(CaldavError::Anyhow(anyhow!(
             "no event component found in event"

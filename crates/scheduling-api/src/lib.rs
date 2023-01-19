@@ -65,6 +65,8 @@ pub struct BookingRequest {
     pub start: chrono::DateTime<chrono::Utc>,
     pub end: chrono::DateTime<chrono::Utc>,
     pub name: String,
+    pub email: String,
+    pub description: String,
 }
 /// Attempt to reserve a time slot in the booked calendar
 /// This will fail if the slot is not available
@@ -88,18 +90,19 @@ pub async fn request_booking(
     )
     .await?;
 
-    /* TODO:
+    /*
      * Check if the requested time is available
-     * T
      */
     let is_available = avail.matrix.iter().all(|it| *it);
     if !is_available {
         return Err(SchedulerError::TimeNotAvailable(body.start));
     }
 
+    let description = format!("email: {}\n{}", body.email, body.description);
+
     // Create an event in the booking calendar
     booked_calendar
-        .create_event(&client, &body.name, body.start, body.end)
+        .create_event(&client, body.start, body.end, &body.name, &description)
         .await?;
 
     Ok(StatusCode::OK)

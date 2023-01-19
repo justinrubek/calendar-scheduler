@@ -106,9 +106,10 @@ impl Calendar {
     pub async fn create_event(
         &self,
         client: &reqwest::Client,
-        name: &str,
         start: chrono::DateTime<chrono::Utc>,
         end: chrono::DateTime<chrono::Utc>,
+        name: &str,
+        description: &str,
     ) -> CaldavResult<Event> {
         let id = ksuid::Ksuid::generate().to_base62();
 
@@ -117,6 +118,7 @@ impl Calendar {
             .summary(name)
             .starts(start)
             .ends(end)
+            .description(description)
             .done();
 
         let calendar = icalendar::Calendar::new()
