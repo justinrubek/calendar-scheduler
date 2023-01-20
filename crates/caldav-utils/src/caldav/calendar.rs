@@ -1,4 +1,3 @@
-use icalendar::{Component, EventLike};
 use minidom::Element;
 use reqwest::Method;
 use url::Url;
@@ -113,19 +112,7 @@ impl Calendar {
     ) -> CaldavResult<Event> {
         let id = ksuid::Ksuid::generate().to_base62();
 
-        let event = icalendar::Event::new()
-            .uid(&id)
-            .summary(name)
-            .starts(start)
-            .ends(end)
-            .description(description)
-            .done();
-
-        let calendar = icalendar::Calendar::new()
-            .timezone("UTC")
-            .push(event)
-            .done();
-
+        let calendar = crate::caldav::util::create_event(&id, name, description, start, end);
         tracing::debug!("creating event: {:?}", calendar.to_string());
 
         // Perform an HTTP PUT request to create a new event
