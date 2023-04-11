@@ -33,6 +33,7 @@
       systems = ["x86_64-linux" "aarch64-linux"];
       imports = [
         ./flake-parts/cargo.nix
+        ./flake-parts/rust-toolchain.nix
       ];
     };
 }
