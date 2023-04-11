@@ -6,6 +6,7 @@
   imports = [];
 
   perSystem = {
+    config,
     pkgs,
     lib,
     system,
@@ -51,14 +52,6 @@
           partitionType = "count";
         }
         // common-build-args);
-
-      pre-commit-hooks = inputs.pre-commit-hooks.lib.${system}.run {
-        inherit (common-build-args) src;
-        hooks = {
-          alejandra.enable = true;
-          rustfmt.enable = true;
-        };
-      };
     };
 
     packages = rec {
@@ -99,7 +92,10 @@
       buildInputs = allBuildInputs [self'.packages.rust-toolchain] ++ devTools;
       nativeBuildInputs = allNativeBuildInputs [];
       LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath buildInputs;
-      inherit (self.checks.${system}.pre-commit-hooks) shellHook;
+
+      shellHook = ''
+        ${config.pre-commit.installationScript}
+      '';
     };
 
     apps = {
