@@ -2,6 +2,10 @@
 name = "scheduling-api"
 version = { workspace = true }
 edition = "2021"
+license = "MIT"
+description = "axum API for scheduling using a caldav server"
+homepage = "https://github.com/justinrubek/calendar-scheduler"
+repository = "https://github.com/justinrubek/calendar-scheduler"
 
 [dependencies]
 axum = { workspace = true, features = ["macros"] }

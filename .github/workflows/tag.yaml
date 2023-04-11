@@ -51,3 +51,8 @@ jobs:
         with:
           command: publish
           args: --package caldav-utils --token ${{ secrets.CRATES_IO_TOKEN }}
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: publish
+          args: --package scheduling-api --token ${{ secrets.CRATES_IO_TOKEN }}
