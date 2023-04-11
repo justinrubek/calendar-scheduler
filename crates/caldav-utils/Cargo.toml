@@ -1,6 +1,6 @@
 [package]
 name = "caldav-utils"
-version = "0.6.4"
+version = { workspace = true }
 edition = "2021"
 license = "MIT"
 description = "functions for interacting with CalDAV servers"
@@ -16,12 +16,12 @@ icalendar = "0.15.1"
 ksuid = "0.2.0"
 minidom = "0.15.0"
 # clap = { version = "4.0.19", features = ["derive"] }
-reqwest = { version = "0.11.12", features = ["rustls-tls", "json"] }
+reqwest = { workspace = true }
 rrule = "0.10.0"
-serde = { version = "1", features = ["derive"] }
+serde = { workspace = true }
 serde_with = { version = "2.1.0", features = ["chrono"] }
-serde_json = "1.0.87"
+serde_json = { workspace = true }
 thiserror = "1.0.38"
-tokio = { version = "1", features = ["full"] }
-tracing = "0.1.37"
+tokio = { workspace = true }
+tracing = { workspace = true }
 url = "2.3.1"

@@ -1,6 +1,6 @@
 [package]
 name = "cli"
-version = "0.1.0"
+version = { workspace = true }
 edition = "2021"
 authors = ["Justin Rubek"]
 
@@ -9,12 +9,12 @@ name = "cli"
 path = "src/main.rs"
 
 [dependencies]
-axum = "0.6.1"
+axum = { workspace = true }
 caldav-utils = { path = "../caldav-utils" }
 chrono = "0.4.23"
 clap = { version = "4.0.19", features = ["derive"] }
-reqwest = { version = "0.11.12", features = ["rustls-tls", "json"] }
+reqwest = { workspace = true }
 scheduling-api = { path = "../scheduling-api" }
-tokio = { version = "1", features = ["full"] }
-tracing = "0.1.37"
+tokio = { workspace = true }
+tracing = { workspace = true }
 tracing-subscriber = "0.3.16"

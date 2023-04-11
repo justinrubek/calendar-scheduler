@@ -93,8 +93,6 @@
       pkgs.pkg-config
     ];
     extraNativeBuildInputs = [
-      pkgs.openssl
-      pkgs.openssl.dev
     ];
 
     allBuildInputs = base: base ++ extraBuildInputs;
