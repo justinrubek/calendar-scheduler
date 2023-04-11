@@ -1,19 +1,18 @@
 [package]
 name = "scheduling-api"
-version = "0.6.4"
+version = { workspace = true }
 edition = "2021"
 
 [dependencies]
-axum = { version = "0.6.1", features = ["macros"] }
+axum = { workspace = true, features = ["macros"] }
 caldav-utils = { path = "../caldav-utils" }
 # clap = { version = "4.0.19", features = ["derive"] }
 chrono = { version = "0.4.23", features = ["serde"] }
 icalendar = "0.15.1"
-reqwest = { version = "0.11.12", features = ["rustls-tls"] }
-serde = { version = "1", features = ["derive"] }
-serde_json = "1"
+reqwest = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
 thiserror = "1.0.38"
-tokio = { version = "1", features = ["full"] }
 tower = { version = "0.4", features = ["util"] }
 tower-http = { version = "0.3.0", features = ["fs"] }
-tracing = "0.1.37"
+tracing = { workspace = true }
