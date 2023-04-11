@@ -2,6 +2,18 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## [0.7.0](https://github.com/justinrubek/calendar-scheduler/compare/0.6.4..0.7.0) - 2023-04-11
+#### Continuous Integration
+- Add changelog to github release - ([d97f301](https://github.com/justinrubek/calendar-scheduler/commit/d97f3013a01f53f1d6fce37cf30c29017393fbad)) - [@justinrubek](https://github.com/justinrubek)
+- update bomper - ([37a97ea](https://github.com/justinrubek/calendar-scheduler/commit/37a97ea67f628a2aae5385c9c6c80cf76dea5e6b)) - [@justinrubek](https://github.com/justinrubek)
+#### Miscellaneous Chores
+- **(cargo)** refactor manifests - ([0a0b70b](https://github.com/justinrubek/calendar-scheduler/commit/0a0b70bb191d703e3ced1ccd43738ee618fb9822)) - [@justinrubek](https://github.com/justinrubek)
+#### Refactoring
+- **(nix)** Specify rust-toolchain separately from cargo packages - ([dd0ec03](https://github.com/justinrubek/calendar-scheduler/commit/dd0ec0371852a9ca55981ec20beb0025643963d0)) - [@justinrubek](https://github.com/justinrubek)
+- use pre-commit-hooks flake module - ([8090029](https://github.com/justinrubek/calendar-scheduler/commit/8090029dd9b4c7a70ac6e7a19735d379a94ed7fa)) - [@justinrubek](https://github.com/justinrubek)
+
+- - -
+
 ## [0.6.4](https://github.com/justinrubek/calendar-scheduler/compare/0.6.3..0.6.4) - 2023-01-19
 #### Features
 - accept description on events - ([922aa82](https://github.com/justinrubek/calendar-scheduler/commit/922aa82484b3bc6918a3bdc802df1326dcf58bd6)) - [@justinrubek](https://github.com/justinrubek)

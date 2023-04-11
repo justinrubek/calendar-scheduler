@@ -138,7 +138,7 @@ checksum = "dfb24e866b15a1af2a1b663f10c6b6b8f397a84aadb828f12e5b289ec23a3a3c"
 
 [[package]]
 name = "caldav-utils"
-version = "0.6.4"
+version = "0.7.0"
 dependencies = [
  "anyhow",
  "chrono",
@@ -269,7 +269,7 @@ dependencies = [
 
 [[package]]
 name = "cli"
-version = "0.6.4"
+version = "0.7.0"
 dependencies = [
  "axum",
  "caldav-utils",
@@ -1280,7 +1280,7 @@ checksum = "7b4b9743ed687d4b4bcedf9ff5eaa7398495ae14e61cba0a295704edbc7decde"
 
 [[package]]
 name = "scheduling-api"
-version = "0.6.4"
+version = "0.7.0"
 dependencies = [
  "axum",
  "caldav-utils",
