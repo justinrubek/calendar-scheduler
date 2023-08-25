@@ -2,6 +2,18 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## [0.7.1](https://github.com/justinrubek/calendar-scheduler/compare/0.7.0..0.7.1) - 2023-08-25
+#### Build system
+- **(cargo)** cargo update - ([cccb48e](https://github.com/justinrubek/calendar-scheduler/commit/cccb48e8fe49a40ba0d9fd3cec94c2cc143ed70a)) - [@justinrubek](https://github.com/justinrubek)
+- **(nix)** update fenix input - ([ca583fc](https://github.com/justinrubek/calendar-scheduler/commit/ca583fc7f7396cf5fdd3c56347f3fb2160b28943)) - [@justinrubek](https://github.com/justinrubek)
+#### Continuous Integration
+- **(github)** publish scheduling-api crate - ([865a7b3](https://github.com/justinrubek/calendar-scheduler/commit/865a7b36c55ee591375f0c7e244ce709744085e5)) - [@justinrubek](https://github.com/justinrubek)
+- **(github)** fix github action - ([faa3469](https://github.com/justinrubek/calendar-scheduler/commit/faa34692f9fd3543a88d48d0726f44cc7989bcc8)) - [@justinrubek](https://github.com/justinrubek)
+#### Miscellaneous Chores
+- **(deps)** bump h2 from 0.3.15 to 0.3.18 - ([c75b0e8](https://github.com/justinrubek/calendar-scheduler/commit/c75b0e884a26717ee823b57082c633cfa69947af)) - dependabot[bot]
+
+- - -
+
 ## [0.7.0](https://github.com/justinrubek/calendar-scheduler/compare/0.6.4..0.7.0) - 2023-04-11
 #### Continuous Integration
 - Add changelog to github release - ([d97f301](https://github.com/justinrubek/calendar-scheduler/commit/d97f3013a01f53f1d6fce37cf30c29017393fbad)) - [@justinrubek](https://github.com/justinrubek)
